@@ -83,7 +83,7 @@ class mf_graph:
                 if not(f):break
                 flow+=f
         return flow
-    def min_cut(s):
+    def min_cut(self,s):
         visited=[False for i in range(self.n)]
         que=deque([])
         que.append(s)
