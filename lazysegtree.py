@@ -1,4 +1,12 @@
 class lazy_segtree():
+    def update(self,k):self.d[k]=self.op(self.d[2*k],self.d[2*k+1])
+    def all_apply(self,k,f):
+        self.d[k]=self.mapping(f,self.d[k])
+        if (k<self.size):self.lz[k]=self.composition(f,self.lz[k])
+    def push(self,k):
+        self.all_apply(2*k,self.lz[k])
+        self.all_apply(2*k+1,self.lz[k])
+        self.lz[k]=self.identity
     def __init__(self,V,OP,E,MAPPING,COMPOSITION,ID):
         self.n=len(V)
         self.log=(self.n-1).bit_length()
@@ -43,7 +51,7 @@ class lazy_segtree():
             r>>=1
         return self.op(sml,smr)
     def all_prod(self):return self.d[1]
-    def apply(self,p,f):
+    def apply_point(self,p,f):
         assert 0<=p and p<self.n
         p+=self.size
         for i in range(self.log,0,-1):self.push(p>>i)
@@ -113,11 +121,3 @@ class lazy_segtree():
             sm=self.op(self.d[r],sm)
             if (r&-r)==r:break
         return 0
-    def update(self,k):self.d[k]=self.op(self.d[2*k],self.d[2*k+1])
-    def all_apply(self,k,f):
-        self.d[k]=self.mapping(f,self.d[k])
-        if (k<self.size):self.lz[k]=self.composition(f,self.lz[k])
-    def push(self,k):
-        self.all_apply(2*k,self.lz[k])
-        self.all_apply(2*k+1,self.lz[k])
-        self.lz[k]=self.identity
