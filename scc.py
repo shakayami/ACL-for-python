@@ -1,3 +1,5 @@
+import sys
+sys.setrecursionlimit(10**6)
 def scc(N,edges):
     M=len(edges)
     start=[0]*(N+1)
