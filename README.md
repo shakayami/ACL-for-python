@@ -9,6 +9,6 @@ https://github.com/atcoder/ac-library
 
 ここに書かれているプログラムは自由に使って下さい。
 
-現在未完成なので使用する際は自己責任でお願いします。
-
 使用法はWikiに書く予定です。
+
+とりあえず、AtCoder Library Practice Contest（https://atcoder.jp/contests/practice2 ）を全問ACできるようにはなっています。
