@@ -138,10 +138,9 @@ class string:
         z=[0]*n
         i=1;j=0
         while(i<n):
-            k=z[i]
-            k=0 if (j+z[j]<=i) else min(j+z[j]-i,z[i-j])
-            while(i+k<n and s[k]==s[i+k]):
-                k+=1
+            z[i]=0 if (j+z[j]<=i) else min(j+z[j]-i,z[i-j])
+            while((i+z[i]<n) and (s[z[i]]==s[i+z[i]])):
+                z[i]+=1
             if (j+z[j]<i+z[i]):
                 j=i
             i+=1
