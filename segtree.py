@@ -42,7 +42,7 @@ class segtree():
             r>>=1
         return self.op(sml,smr)
     def all_prod(self):
-        return d[1]
+        return self.d[1]
     def max_right(self,l,f):
         assert 0<=l and l<=self.n
         assert f(self.e)
