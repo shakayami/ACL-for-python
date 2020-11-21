@@ -37,18 +37,20 @@ class FFT():
             res+=1
             x//=2
         return res
+    butterfly_first=True
+    butterfly_inv_first=True
+    sum_e=[0]*24
+    sum_ie=[0]*24
     def __init__(self,MOD):
         self.mod=MOD
         self.g=self.primitive_root_constexpr(self.mod)
     def butterfly(self,a):
         n=len(a)
         h=(n-1).bit_length()
-        first=True
-        sum_e=[0]*30
-        if first:
-            first=False
-            es=[0]*30
-            ies=[0]*30
+        if self.butterfly_first:
+            self.butterfly_first=False
+            es=[0]*24
+            ies=[0]*24
             cnt2=self.bsf(self.mod-1)
             e=pow(self.g,(self.mod-1)>>cnt2,self.mod)
             ie=pow(e,self.mod-2,self.mod)
@@ -59,8 +61,9 @@ class FFT():
                 ie=(ie*ie)%self.mod
             now=1
             for i in range(cnt2-2):
-                sum_e[i]=(es[i]*now)%self.mod
-                now=(now*ies[i])%self.mod
+                self.sum_e[i]=((es[i]*now)%self.mod)
+                now*=ies[i]
+                now%=self.mod
         for ph in range(1,h+1):
             w=1<<(ph-1)
             p=1<<(h-ph)
@@ -69,19 +72,21 @@ class FFT():
                 offset=s<<(h-ph+1)
                 for i in range(p):
                     l=a[i+offset]
-                    r=(a[i+offset+p]*now)%self.mod
-                    a[i+offset]=(l+r)%self.mod
-                    a[i+offset+p]=(l-r)%self.mod
-                now=(now*sum_e[(~s & -~s).bit_length()-1])%self.mod
+                    r=a[i+offset+p]*now
+                    r%=self.mod
+                    a[i+offset]=l+r
+                    a[i+offset]%=self.mod
+                    a[i+offset+p]=l-r
+                    a[i+offset+p]%=self.mod
+                now*=self.sum_e[(~s & -~s).bit_length()-1]
+                now%=self.mod
     def butterfly_inv(self,a):
         n=len(a)
         h=(n-1).bit_length()
-        first=True
-        sum_ie=[0]*30
-        if first:
-            first=False
-            es=[0]*30
-            ies=[0]*30
+        if self.butterfly_inv_first:
+            self.butterfly_inv_first=False
+            es=[0]*24
+            ies=[0]*24
             cnt2=self.bsf(self.mod-1)
             e=pow(self.g,(self.mod-1)>>cnt2,self.mod)
             ie=pow(e,self.mod-2,self.mod)
@@ -92,8 +97,9 @@ class FFT():
                 ie=(ie*ie)%self.mod
             now=1
             for i in range(cnt2-2):
-                sum_ie[i]=(ies[i]*now)%self.mod
-                now=(now*es[i])%self.mod
+                self.sum_ie[i]=((ies[i]*now)%self.mod)
+                now*=es[i]
+                now%=mod
         for ph in range(h,0,-1):
             w=1<<(ph-1)
             p=1<<(h-ph)
@@ -103,14 +109,27 @@ class FFT():
                 for i in range(p):
                     l=a[i+offset]
                     r=a[i+offset+p]
-                    a[i+offset]=(l+r)%self.mod
-                    a[i+offset+p]=((l-r)*inow)%self.mod
-                inow=(inow*sum_ie[(~s & -~s).bit_length()-1])%self.mod
+                    a[i+offset]=l+r
+                    a[i+offset]%=self.mod
+                    a[i+offset+p]=(l-r)*inow
+                    a[i+offset+p]%=self.mod
+                inow*=self.sum_ie[(~s & -~s).bit_length()-1]
+                inow%=self.mod
     def convolution(self,a,b):
         n=len(a);m=len(b)
         if not(a) or not(b):
             return []
-        z=1<<((n+m-1-1).bit_length())
+        if min(n,m)<=40:
+            if n<m:
+                n,m=m,n
+                a,b=b,a
+            res=[0]*(n+m-1)
+            for i in range(n):
+                for j in range(m):
+                    res[i+j]+=a[i]*b[j]
+                    res[i+j]%=self.mod
+            return res
+        z=1<<((n+m-2).bit_length())
         a=a+[0]*(z-n)
         b=b+[0]*(z-m)
         self.butterfly(a)
