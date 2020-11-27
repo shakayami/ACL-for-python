@@ -32,9 +32,9 @@ class mcf_graph():
             result[i]["flow"]=tmp["flow"]
             result[i]["cost"]=tmp["cost"]
         return result
-    def flow(self,s,t,flow_limit=(2**31)-1):
+    def flow(self,s,t,flow_limit=(1<<63)-1):
         return self.slope(s,t,flow_limit)[-1]
-    def slope(self,s,t,flow_limit=(2**31)-1):
+    def slope(self,s,t,flow_limit=(1<<63)-1):
         assert 0<=s and s<self.n
         assert 0<=t and t<self.n
         assert s!=t
@@ -50,7 +50,7 @@ class mcf_graph():
         vis=[False for i in range(self.n)]
         def dual_ref():
             for i in range(self.n):
-                dist[i]=(2**31)-1
+                dist[i]=(1<<63)-1
                 pv[i]=-1
                 pe[i]=-1
                 vis[i]=False
