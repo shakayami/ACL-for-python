@@ -99,7 +99,7 @@ class FFT():
             for i in range(cnt2-2):
                 self.sum_ie[i]=((ies[i]*now)%self.mod)
                 now*=es[i]
-                now%=mod
+                now%=self.mod
         for ph in range(h,0,-1):
             w=1<<(ph-1)
             p=1<<(h-ph)
