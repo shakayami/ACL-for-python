@@ -39,8 +39,8 @@ class FFT():
         return res
     butterfly_first=True
     butterfly_inv_first=True
-    sum_e=[0]*24
-    sum_ie=[0]*24
+    sum_e=[0]*30
+    sum_ie=[0]*30
     def __init__(self,MOD):
         self.mod=MOD
         self.g=self.primitive_root_constexpr(self.mod)
@@ -49,8 +49,8 @@ class FFT():
         h=(n-1).bit_length()
         if self.butterfly_first:
             self.butterfly_first=False
-            es=[0]*24
-            ies=[0]*24
+            es=[0]*30
+            ies=[0]*30
             cnt2=self.bsf(self.mod-1)
             e=pow(self.g,(self.mod-1)>>cnt2,self.mod)
             ie=pow(e,self.mod-2,self.mod)
@@ -85,8 +85,8 @@ class FFT():
         h=(n-1).bit_length()
         if self.butterfly_inv_first:
             self.butterfly_inv_first=False
-            es=[0]*24
-            ies=[0]*24
+            es=[0]*30
+            ies=[0]*30
             cnt2=self.bsf(self.mod-1)
             e=pow(self.g,(self.mod-1)>>cnt2,self.mod)
             ie=pow(e,self.mod-2,self.mod)
