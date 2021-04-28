@@ -105,16 +105,70 @@ class FPS:
     def __isub__(self,other):
         self=self-other
         return self
+    def inv(self,d=-1):
+        n=len(self.Func)
+        assert n!=0 and self.Func[0]!=0
+        if d==-1:d=n
+        assert d>0
+        res=[pow(self.Func[0],self.mod-2,self.mod)]
+        while(len(res)<d):
+            m=len(res)
+            f=[self.Func[i] for i in range(min(n,2*m))]
+            r=res[:]
+
+            if len(f)<2*m:
+                f+=[0]*(2*m-len(f))
+            elif len(f)>2*m:
+                f=f[:2*m]
+            if len(r)<2*m:
+                r+=[0]*(2*m-len(r))
+            elif len(r)>2*m:
+                r=r[:2*m]
+            f=self.butterfly(f)
+            r=self.butterfly(r)
+            for i in range(2*m):
+                f[i]*=r[i]
+                f[i]%=self.mod
+            f=self.butterfly_inv(f)
+            f=f[m:]
+            if len(f)<2*m:
+                f+=[0]*(2*m-len(f))
+            elif len(f)>2*m:
+                f=f[:2*m]
+            f=self.butterfly(f)
+            for i in range(2*m):
+                f[i]*=r[i]
+                f[i]%=self.mod
+            f=self.butterfly_inv(f)
+            iz=pow(2*m,self.mod-2,self.mod)
+            iz*=-iz
+            iz%=self.mod
+            for i in range(m):
+                f[i]*=iz
+                f[i]%=self.mod
+            res+=f[:m]
+        return FPS(res[:d])
+    def __truediv__(self,other):
+        assert (other.Func[0]!=0)
+        return self*(other.inv())
+    def __itruediv__(self,other):
+        self=self/other
+        return self
+    def __lshift__(self,d):
+        n=len(self.Func)
+        self.Func=[0]*d+self.Func
+        return FPS(self.Func[:n])
+    def __ilshift__(self,d):
+        self=self<<d
+        return self
+    def __rshift__(self,d):
+        n=len(self.Func)
+        self.Func=self.Func[min(n,d):]
+        self.Func+=[0]*(n-len(self.Func))
+        return FPS(self.Func)
+    def __irshift__(self,d):
+        self=self>>d
+        return self
     def __str__(self):
         return f'FPS({self.Func})'
-    
-'''        
-N,M=map(int,input().split())
-A=FPS([int(i) for i in input().split()])
-B=FPS([int(i) for i in input().split()])
-print(A)
-print(B)
-print(A+B)
-print(A-B)
-print(A*B)
-'''
+
