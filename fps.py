@@ -50,6 +50,9 @@ class FPS:
                 inow%=self.mod
         return a
     def __mul__(self,other):
+        if type(other)==int:
+            ret=[(x*other)%self.mod for x in self.Func]
+            return FPS(ret)
         a=self.Func
         b=other.Func
         n=len(a);m=len(b)
@@ -149,6 +152,10 @@ class FPS:
             res+=f[:m]
         return FPS(res[:d])
     def __truediv__(self,other):
+        if type(other)==int:
+            invother=pow(other,self.mod-2,self.mod)
+            ret=[(x*invother)%self.mod for x in self.Func]
+            return FPS(ret)
         assert (other.Func[0]!=0)
         return self*(other.inv())
     def __itruediv__(self,other):
@@ -171,4 +178,122 @@ class FPS:
         return self
     def __str__(self):
         return f'FPS({self.Func})'
+    def diff(self):
+        n=len(self.Func)
+        ret=[0 for i in range(max(0,n-1))]
+        for i in range(1,n):
+            ret[i-1]=(self.Func[i]*i)%self.mod
+        return FPS(ret)
+    def integral(self):
+        n=len(self.Func)
+        ret=[0 for i in range(n+1)]
+        for i in range(n):
+            ret[i+1]=self.Func[i]*pow(i+1,self.mod-2,self.mod)%self.mod
+        return FPS(ret)
+    def log(self,deg=-1):
+        assert self.Func[0]==1
+        n=len(self.Func)
+        if deg==-1:deg=n
+        return (self.diff()*self.inv()).integral()
+    def mod_sqrt(self,a):
+        p=self.mod
+        assert 0<=a and a<p
+        if a<2:return a
+        if pow(a,(p-1)//2,p)!=1:return -1
+        b=1;one=1
+        while(pow(b,(p-1)>>1,p)==1):
+            b+=one
+        m=p-1;e=0
+        while(m%2==0):
+            m>>=1
+            e+=1
+        x=pow(a,(m-1)>>1,p)
+        y=(a*x*x)%p
+        x*=a;
+        x%=p
+        z=pow(b,m,p)
+        while(y!=1):
+            j=0
+            t=y
+            while(t!=one):
+                j+=1
+                t*=t
+                t%=p
+            z=pow(z,1<<(e-j-1),p)
+            x*=z
+            x%=p
+            z*=z
+            z%=p
+            y*=z
+            y%=p
+            e=j
+        return x
+    def sqrt(self,deg=-1):
+        n=len(self.Func)
+        if deg==-1:deg=n
+        if n==0:return FPS([0 for i in range(deg)])
+        if self.Func[0]==0:
+            for i in range(1,n):
+                if self.Func[i]!=0:
+                    if i&1:return FPS([])
+                    if deg-i//2<=0:break
+                    ret=(self>>i).sqrt(deg-i//2)
+                    if len(ret.Func)==0:return FPS([])
+                    ret=ret<<(i//2)
+                    if len(ret.Func)<deg:
+                        ret.Func+=[0]*(deg-len(ret.Func))
+                    return ret
+            return FPS([0]*deg)
+        sqr=self.mod_sqrt(self.Func[0])
+        if sqr==-1:return FPS([])
+        assert sqr*sqr%self.mod==self.Func[0]
+        ret=FPS([sqr])
+        inv2=(self.mod+1)//2
+        i=1
+        while(i<deg):
+            ret=(ret+FPS(self.Func[:i<<1])*ret.inv(i<<1))*inv2
+            i<<=1
+        return FPS(ret.Func[:deg])
+    def resize(self,deg):
+        if len(self.Func)<deg:
+            return FPS(self.Func+[0]*(deg-len(self.Func)))
+        elif len(self.Func)>deg:
+            return FPS(self.Func[:deg])
+        else:
+            return self
+    def exp(self,deg=-1):
+        n=len(self.Func)
+        assert n>0 and self.Func[0]==0
+        if deg==-1:deg=n
+        ret=FPS([1])
+        i=1
+        while(i<deg):
+            ret=ret*(self.resize(i<<2)+FPS([int(j==0) for j in range(i<<2)])-ret.log(i<<2))
+            ret=ret.resize(i<<2)
+            i<<=1
+        return ret.resize(deg)
+    def powfps(self,k,deg=-1):
+        a=self.Func[:]
+        n=len(self.Func)
+        l=0
+        while(l<len(a) and not a[l]):
+            l+=1
+        if l*k>=n:
+            return FPS([0]*n)
+        ic=pow(a[l],self.mod-2,self.mod)
+        pc=pow(a[l],k,self.mod)
+        a=FPS([(a[i]*ic)%self.mod for i in range(l,len(a))]).log()
+        a*=k
+        a=a.exp()
+        a*=pc
+        a=[0]*(l*k)+a.Func[:n-l*k]
+        return FPS(a)
+#N,M=map(int,input().split())
+#a=FPS([int(i) for i in input().split()])
+N=262144
+M=10**9
+import random
+a=FPS([random.randrange(998244353) for i in range(N)])
+b=a.powfps(M)
+print(*b.Func)
 
