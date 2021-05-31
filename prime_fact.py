@@ -22,7 +22,7 @@ def is_prime(n):
     return True
 def f(x,N):
     return (x*x+1)%N
-def solve(N):
+def prime_fact(N):
     res=defaultdict(int)
     if N==1:
         return res
