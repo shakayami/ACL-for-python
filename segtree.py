@@ -89,3 +89,5 @@ class segtree():
         return 0
     def update(self,k):
         self.d[k]=self.op(self.d[2*k],self.d[2*k+1])
+    def __str__(self):
+        return str([self.get(i) for i in range(self.n)])
