@@ -1,8 +1,3 @@
-'''
-ACLにはないけど形式的べき級数ライブラリを作ってみる
-とりあえずmod998244353限定で作ってみる
-verifyはyosupo judgeを使いましょう。
-'''
 class FPS:
     sum_e=(911660635, 509520358, 369330050, 332049552, 983190778, 123842337, 238493703, 975955924, 603855026, 856644456, 131300601, 842657263, 730768835, 942482514, 806263778, 151565301, 510815449, 503497456, 743006876, 741047443, 56250497)
     sum_ie=(86583718, 372528824, 373294451, 645684063, 112220581, 692852209, 155456985, 797128860, 90816748, 860285882, 927414960, 354738543, 109331171, 293255632, 535113200, 308540755, 121186627, 608385704, 438932459, 359477183, 824071951)
@@ -265,13 +260,120 @@ class FPS:
         n=len(self.Func)
         assert n>0 and self.Func[0]==0
         if deg==-1:deg=n
-        ret=FPS([1])
-        i=1
-        while(i<deg):
-            ret=ret*(self.resize(i<<2)+FPS([int(j==0) for j in range(i<<2)])-ret.log(i<<2))
-            ret=ret.resize(i<<2)
-            i<<=1
-        return ret.resize(deg)
+        assert deg>=0
+        g=[1]
+        g_fft=[1,1]
+        self.Func[0]=1
+        self.resize(deg)
+        h_drv=self.diff()
+        m=2
+        while(m<deg):
+            f_fft=self.Func[:m]+[0]*m
+            self.butterfly(f_fft)
+            
+            #step 2.a
+            _g=[f_fft[i]*g_fft[i]%self.mod for i in range(m)]
+            self.butterfly_inv(_g)
+            _g=_g[m//2:m]+[0]*(m//2)
+            self.butterfly(_g)
+            for i in range(m):
+                _g[i]*=g_fft[i]
+                _g[i]%=self.mod
+            self.butterfly_inv(_g)
+            tmp=pow(-m*m,self.mod-2,self.mod)
+            for i in range(m):
+                _g[i]*=tmp
+                _g[i]%=self.mod
+            g+=_g[:m//2]
+            #step 2.b--2.d
+            t=FPS(self.Func[:m]).diff()
+            r=h_drv.Func[:m-1]+[0]
+            self.butterfly(r)
+            for i in range(m):
+                r[i]*=f_fft[i]
+                r[i]%=self.mod
+            self.butterfly_inv(r)
+            tmp=pow(-m,self.mod-2,self.mod)
+            for i in range(m):
+                r[i]*=tmp
+                r[i]%=self.mod
+            t=(t+FPS(r)).Func
+            t=[t[-1]]+t
+            t.pop()
+            #step 2.e
+            if (2*m<deg):
+                if len(t)<2*m:
+                    t+=[0]*(2*m-len(t))
+                elif len(t)>2*m:
+                    t=t[:2*m]
+                self.butterfly(t)
+                g_fft=g[:]
+                if len(g_fft)<2*m:
+                    g_fft+=[0]*(2*m-len(g_fft))
+                elif len(g_fft)>2*m:
+                    g_fft=g_fft[:2*m]
+                self.butterfly(g_fft)
+                for i in range(2*m):
+                    t[i]*=g_fft[i]
+                    t[i]%=self.mod
+                self.butterfly_inv(t)
+                tmp=pow(2*m,self.mod-2,self.mod)
+                t=t[:m]
+                for i in range(m):
+                    t[i]*=tmp
+                    t[i]%=self.mod
+            else:
+                g1=g[m//2:]
+                s1=t[m//2:]
+                t=t[:m//2]
+                g1+=[0]*(m-len(g1))
+                s1+=[0]*(m-len(s1))
+                t+=[0]*(m-len(t))
+                
+                self.butterfly(g1)
+                self.butterfly(t)
+                self.butterfly(s1)
+                for i in range(m):
+                    s1[i]=(g_fft[i]*s1[i]+g1[i]*t[i])%self.mod
+                for i in range(m):
+                    t[i]*=g_fft[i]
+                    t[i]%=self.mod
+                self.butterfly_inv(t)
+                self.butterfly_inv(s1)
+                for i in range(m//2):
+                    t[i+m//2]+=s1[i]
+                    t[i+m//2]%=self.mod
+                tmp=pow(m,self.mod-2,self.mod)
+                for i in range(m):
+                    t[i]*=tmp
+                    t[i]%=self.mod
+            #step 2.f
+            v=self.Func[m:min(deg,2*m)]+[0]*(2*m-min(deg,2*m))
+            t=[0]*(m-1)+t
+            t=FPS(t).integral().Func
+            for i in range(m):
+                v[i]-=t[m+i]
+                v[i]%=self.mod
+            #step 2.g
+            if len(v)<2*m:
+                v+=[0]*(2*m-len(v))
+            else:
+                v=v[:2*m]
+            self.butterfly(v)
+            for i in range(2*m):
+                v[i]*=f_fft[i]
+                v[i]%=self.mod
+            self.butterfly_inv(v)
+            v=v[:m]
+            tmp=pow(2*m,self.mod-2,self.mod)
+            for i in range(m):
+                v[i]*=tmp
+                v[i]%=self.mod
+            #step 2.h
+            for i in range(min(deg-m,m)):
+                self.Func[m+i]=v[i]
+            m*=2
+        return self
     def powfps(self,k,deg=-1):
         a=self.Func[:]
         n=len(self.Func)
@@ -288,12 +390,3 @@ class FPS:
         a*=pc
         a=[0]*(l*k)+a.Func[:n-l*k]
         return FPS(a)
-#N,M=map(int,input().split())
-#a=FPS([int(i) for i in input().split()])
-N=262144
-M=10**9
-import random
-a=FPS([random.randrange(998244353) for i in range(N)])
-b=a.powfps(M)
-print(*b.Func)
-
