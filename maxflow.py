@@ -45,8 +45,7 @@ class mf_graph:
         Iter=[0 for i in range(self.n)]
         que=deque([])
         def bfs():
-            for i in range(self.n):
-                level[i]=-1
+            for i in range(self.n):level[i]=-1
             level[s]=0
             que=deque([])
             que.append(s)
@@ -69,15 +68,14 @@ class mf_graph:
                 self.g[v][i]["cap"]+=d
                 self.g[e["to"]][e["rev"]]["cap"]-=d
                 res+=d
-                if res==up:break
+                if res==up:return res
+            level[v]=self.n
             return res
         flow=0
         while(flow<flow_limit):
             bfs()
-            if level[t]==-1:
-                break
-            for i in range(self.n):
-                Iter[i]=0
+            if level[t]==-1:break
+            for i in range(self.n):Iter[i]=0
             while(flow<flow_limit):
                 f=dfs(dfs,t,flow_limit-flow)
                 if not(f):break
