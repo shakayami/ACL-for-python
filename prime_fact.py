@@ -20,8 +20,7 @@ def is_prime(n):
         if y!=n-1 and t&1==0:
             return False
     return True
-def f(x,N):
-    return (x*x+1)%N
+
 def prime_fact(N):
     res=defaultdict(int)
     if N==1:
@@ -38,7 +37,7 @@ def prime_fact(N):
             res[N]+=1
             break
         x=random.randrange(N)
-        y=f(x,N)
+        y=(x*x+1)%N
         i=1
         while(True):
             d=gcd(abs(x-y),N)
@@ -51,8 +50,7 @@ def prime_fact(N):
                 res[d]+=1
                 N//=d
                 break
-            x=f(x,N)
-            y=f(f(y,N),N)
+            x=(x*x+1)%N
+            y=(y*y+1)%N
+            y=(y*y+1)%N
     return res
-
-
