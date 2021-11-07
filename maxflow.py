@@ -6,6 +6,7 @@ class mf_graph:
     def __init__(self,N):
         self.n=N
         self.g=[[] for i in range(N)]
+        self.pos=[]
     def add_edge(self,From,To,cap):
         assert 0<=From and From<self.n
         assert 0<=To and To<self.n
@@ -38,7 +39,7 @@ class mf_graph:
         _re=self.g[_e["to"]][_e["rev"]]
         _e["cap"]=new_cap-new_flow
         _re["cap"]=new_flow
-    def flow(self,s,t,flow_limit=(2**31)-1):
+    def flow(self,s,t,flow_limit=(1<<63)-1):
         assert 0<=s and s<self.n
         assert 0<=t and t<self.n
         level=[0 for i in range(self.n)]
