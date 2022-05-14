@@ -87,7 +87,7 @@ class lazy_segtree():
         for i in range(self.log,0,-1):self.push(l>>i)
         sm=self.e
         while(1):
-            while(i%2==0):l>>=1
+            while(l%2==0):l>>=1
             if not(g(self.op(sm,self.d[l]))):
                 while(l<self.size):
                     self.push(l)
