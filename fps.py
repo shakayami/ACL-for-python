@@ -377,13 +377,13 @@ class FPS:
     def powfps(self,k,deg=-1):
         a=self.Func[:]
         n=len(self.Func)
+        if k==0:
+            return FPS([int(i==0) for i in range(n)])
         l=0
         while(l<len(a) and not a[l]):
             l+=1
         if l*k>=n:
             return FPS([0]*n)
-        if l==len(a):
-            return FPS([int(i==0) for i in range(n)])
         ic=pow(a[l],self.mod-2,self.mod)
         pc=pow(a[l],k,self.mod)
         a=FPS([(a[i]*ic)%self.mod for i in range(l,len(a))]).log()
