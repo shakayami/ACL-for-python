@@ -1,7 +1,7 @@
 from math import gcd
 import random
-from collections import defaultdict
-def is_prime(n):
+from collections import Counter
+def is_probable_prime(n):
     if n==2:
         return True
     if n==1 or n&1==0:
@@ -20,11 +20,23 @@ def is_prime(n):
         if y!=n-1 and t&1==0:
             return False
     return True
-
+def _solve(N):
+    if is_probable_prime(N):
+        return N
+    while(True):
+        x=random.randrange(N)
+        c=random.randrange(N)
+        y=(x*x+c)%N
+        d=1
+        while(d==1):
+            d=gcd(x-y,N)
+            x=(x*x+c)%N
+            y=(y*y+c)%N
+            y=(y*y+c)%N
+        if 1<d<N:
+            return _solve(d)
 def prime_fact(N):
-    res=defaultdict(int)
-    if N==1:
-        return res
+    res=Counter()
     p=2
     while(p<=10**4 and N>1):
         if N%p==0:
@@ -33,24 +45,8 @@ def prime_fact(N):
                 N//=p
         p+=1
     while(N>1):
-        if is_prime(N):
-            res[N]+=1
-            break
-        x=random.randrange(N)
-        y=(x*x+1)%N
-        i=1
-        while(True):
-            d=gcd(abs(x-y),N)
-            if d==1:
-                i+=1
-            elif d==N:
-                res[N]+=1
-                return res
-            else:
-                res[d]+=1
-                N//=d
-                break
-            x=(x*x+1)%N
-            y=(y*y+1)%N
-            y=(y*y+1)%N
+        p=_solve(N)
+        while(N%p)==0:
+            res[p]+=1
+            N//=p
     return res
