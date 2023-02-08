@@ -46,6 +46,12 @@ def crt(r,m):
 
 def floor_sum(n,m,a,b):
     ans=0
+    if a<0:
+        a2=a%m
+        return floor_sum(n,m,a2,b)-n*(n-1)*((a2-a)//m)//2
+    if b<0:
+        b2=b%m
+        return floor_sum(n,m,a,b2)-n*((b2-b)//m)
     if a>=m:
         ans+=(n-1)*n*(a//m)//2
         a%=m
