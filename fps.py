@@ -49,7 +49,7 @@ class FPS:
                     rot*=self.rate3[(~s & -~s).bit_length()-1]
                     rot%=self.mod
                 LEN+=2
-                
+        return a
     def butterfly_inv(self,a):
         n=len(a)
         h=(n-1).bit_length()
@@ -89,6 +89,7 @@ class FPS:
                     irot*=self.irate3[(~s & -~s).bit_length()-1]
                     irot%=self.mod
                 LEN-=2
+        return a
     def __mul__(self,other):
         if type(other)==int:
             ret=[(x*other)%self.mod for x in self.Func]
@@ -111,8 +112,8 @@ class FPS:
         z=1<<((n+m-2).bit_length())
         a=a+[0]*(z-n)
         b=b+[0]*(z-m)
-        self.butterfly(a)
-        self.butterfly(b)
+        a=self.butterfly(a)
+        b=self.butterfly(b)
         c=[(a[i]*b[i])%self.mod for i in range(z)]
         self.butterfly_inv(c)
         iz=pow(z,self.mod-2,self.mod)
