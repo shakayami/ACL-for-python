@@ -215,6 +215,38 @@ class FPS:
     def __irshift__(self,d):
         self=self>>d
         return self
+    def __lt__(self,other):
+        if len(self.Func)<len(other.Func):
+            return True
+        elif len(self.Func)>len(other.Func):
+            return True
+        else:
+            return self.Func<other.Func
+    def __gt__(self,other):
+        if len(self.Func)>len(other.Func):
+            return True
+        elif len(self.Func)<len(other.Func):
+            return True
+        else:
+            return self.Func>other.Func
+    def __eq__(self,other):
+        return self.Func==other.Func
+    def __le__(self,other):
+        if len(self.Func)<len(other.Func):
+            return True
+        elif len(self.Func)>len(other.Func):
+            return True
+        else:
+            return self.Func<=other.Func
+    def __ge__(self,other):
+        if len(self.Func)>len(other.Func):
+            return True
+        elif len(self.Func)<len(other.Func):
+            return True
+        else:
+            return self.Func>other.Func
+    def __ne__(self,other):
+        return self.Func!=other.Func
     def __str__(self):
         return f'FPS({self.Func})'
     def diff(self):
