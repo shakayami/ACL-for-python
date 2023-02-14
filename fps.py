@@ -1,6 +1,10 @@
 class FPS:
-    sum_e=(911660635, 509520358, 369330050, 332049552, 983190778, 123842337, 238493703, 975955924, 603855026, 856644456, 131300601, 842657263, 730768835, 942482514, 806263778, 151565301, 510815449, 503497456, 743006876, 741047443, 56250497)
-    sum_ie=(86583718, 372528824, 373294451, 645684063, 112220581, 692852209, 155456985, 797128860, 90816748, 860285882, 927414960, 354738543, 109331171, 293255632, 535113200, 308540755, 121186627, 608385704, 438932459, 359477183, 824071951)
+    root=(1, 998244352, 911660635, 372528824, 929031873, 452798380, 922799308, 781712469, 476477967, 166035806, 258648936, 584193783, 63912897, 350007156, 666702199, 968855178, 629671588, 24514907, 996173970, 363395222, 565042129, 733596141, 267099868, 15311432)
+    iroot=(1, 998244352, 86583718, 509520358, 337190230, 87557064, 609441965, 135236158, 304459705, 685443576, 381598368, 335559352, 129292727, 358024708, 814576206, 708402881, 283043518, 3707709, 121392023, 704923114, 950391366, 428961804, 382752275, 469870224)
+    rate2=(911660635, 509520358, 369330050, 332049552, 983190778, 123842337, 238493703, 975955924, 603855026, 856644456, 131300601, 842657263, 730768835, 942482514, 806263778, 151565301, 510815449, 503497456, 743006876, 741047443, 56250497, 867605899, 0)
+    irate2=(86583718, 372528824, 373294451, 645684063, 112220581, 692852209, 155456985, 797128860, 90816748, 860285882, 927414960, 354738543, 109331171, 293255632, 535113200, 308540755, 121186627, 608385704, 438932459, 359477183, 824071951, 103369235, 0)
+    rate3=(372528824, 337190230, 454590761, 816400692, 578227951, 180142363, 83780245, 6597683, 70046822, 623238099, 183021267, 402682409, 631680428, 344509872, 689220186, 365017329, 774342554, 729444058, 102986190, 128751033, 395565204, 0)
+    irate3=(509520358, 929031873, 170256584, 839780419, 282974284, 395914482, 444904435, 72135471, 638914820, 66769500, 771127074, 985925487, 262319669, 262341272, 625870173, 768022760, 859816005, 914661783, 430819711, 272774365, 530924681, 0)
     mod=998244353
     Func=[0]
     def __init__(self,L):
@@ -8,42 +12,83 @@ class FPS:
     def butterfly(self,a):
         n=len(a)
         h=(n-1).bit_length()
-        for ph in range(1,h+1):
-            w=1<<(ph-1)
-            p=1<<(h-ph)
-            now=1
-            for s in range(w):
-                offset=s<<(h-ph+1)
-                for i in range(p):
-                    l=a[i+offset]
-                    r=a[i+offset+p]*now
-                    r%=self.mod
-                    a[i+offset]=l+r
-                    a[i+offset]%=self.mod
-                    a[i+offset+p]=l-r
-                    a[i+offset+p]%=self.mod
-                now*=self.sum_e[(~s & -~s).bit_length()-1]
-                now%=self.mod
-        return a
+        
+        LEN=0
+        while(LEN<h):
+            if (h-LEN==1):
+                p=1<<(h-LEN-1)
+                rot=1
+                for s in range(1<<LEN):
+                    offset=s<<(h-LEN)
+                    for i in range(p):
+                        l=a[i+offset]
+                        r=a[i+offset+p]*rot
+                        a[i+offset]=(l+r)%self.mod
+                        a[i+offset+p]=(l-r)%self.mod
+                    rot*=self.rate2[(~s & -~s).bit_length()-1]
+                    rot%=self.mod
+                LEN+=1
+            else:
+                p=1<<(h-LEN-2)
+                rot=1
+                imag=self.root[2]
+                for s in range(1<<LEN):
+                    rot2=(rot*rot)%self.mod
+                    rot3=(rot2*rot)%self.mod
+                    offset=s<<(h-LEN)
+                    for i in range(p):
+                        a0=a[i+offset]
+                        a1=a[i+offset+p]*rot
+                        a2=a[i+offset+2*p]*rot2
+                        a3=a[i+offset+3*p]*rot3
+                        a1na3imag=(a1-a3)%self.mod*imag
+                        a[i+offset]=(a0+a2+a1+a3)%self.mod
+                        a[i+offset+p]=(a0+a2-a1-a3)%self.mod
+                        a[i+offset+2*p]=(a0-a2+a1na3imag)%self.mod
+                        a[i+offset+3*p]=(a0-a2-a1na3imag)%self.mod
+                    rot*=self.rate3[(~s & -~s).bit_length()-1]
+                    rot%=self.mod
+                LEN+=2
+                
     def butterfly_inv(self,a):
         n=len(a)
         h=(n-1).bit_length()
-        for ph in range(h,0,-1):
-            w=1<<(ph-1)
-            p=1<<(h-ph)
-            inow=1
-            for s in range(w):
-                offset=s<<(h-ph+1)
-                for i in range(p):
-                    l=a[i+offset]
-                    r=a[i+offset+p]
-                    a[i+offset]=l+r
-                    a[i+offset]%=self.mod
-                    a[i+offset+p]=(l-r)*inow
-                    a[i+offset+p]%=self.mod
-                inow*=self.sum_ie[(~s & -~s).bit_length()-1]
-                inow%=self.mod
-        return a
+        LEN=h
+        while(LEN):
+            if (LEN==1):
+                p=1<<(h-LEN)
+                irot=1
+                for s in range(1<<(LEN-1)):
+                    offset=s<<(h-LEN+1)
+                    for i in range(p):
+                        l=a[i+offset]
+                        r=a[i+offset+p]
+                        a[i+offset]=(l+r)%self.mod
+                        a[i+offset+p]=(l-r)*irot%self.mod
+                    irot*=self.irate2[(~s & -~s).bit_length()-1]
+                    irot%=self.mod
+                LEN-=1
+            else:
+                p=1<<(h-LEN)
+                irot=1
+                iimag=self.iroot[2]
+                for s in range(1<<(LEN-2)):
+                    irot2=(irot*irot)%self.mod
+                    irot3=(irot*irot2)%self.mod
+                    offset=s<<(h-LEN+2)
+                    for i in range(p):
+                        a0=a[i+offset]
+                        a1=a[i+offset+p]
+                        a2=a[i+offset+2*p]
+                        a3=a[i+offset+3*p]
+                        a2na3iimag=(a2-a3)*iimag%self.mod
+                        a[i+offset]=(a0+a1+a2+a3)%self.mod
+                        a[i+offset+p]=(a0-a1+a2na3iimag)*irot%self.mod
+                        a[i+offset+2*p]=(a0+a1-a2-a3)*irot2%self.mod
+                        a[i+offset+3*p]=(a0-a1-a2na3iimag)*irot3%self.mod
+                    irot*=self.irate3[(~s & -~s).bit_length()-1]
+                    irot%=self.mod
+                LEN-=2
     def __mul__(self,other):
         if type(other)==int:
             ret=[(x*other)%self.mod for x in self.Func]
@@ -66,11 +111,9 @@ class FPS:
         z=1<<((n+m-2).bit_length())
         a=a+[0]*(z-n)
         b=b+[0]*(z-m)
-        a=self.butterfly(a)
-        b=self.butterfly(b)
-        c=[0]*z
-        for i in range(z):
-            c[i]=(a[i]*b[i])%self.mod
+        self.butterfly(a)
+        self.butterfly(b)
+        c=[(a[i]*b[i])%self.mod for i in range(z)]
         self.butterfly_inv(c)
         iz=pow(z,self.mod-2,self.mod)
         for i in range(n+m-1):
