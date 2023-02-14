@@ -197,6 +197,37 @@ class FPS:
             return FPS(ret)
         assert (other.Func[0]!=0)
         return self*(other.inv())
+    def __floordiv__(self,other):
+        if not other:
+            raise ZeroDivisionError
+        if isinstance(other,int):
+            return self/other
+        self.reduce();other.reduce()
+        F_deg=len(self.Func)-1
+        G_deg=len(other.Func)-1
+        if F_deg<G_deg:
+            return FPS([])
+        m=F_deg-G_deg+1
+        F_inverse=self.Func[::-1]
+        G_inverse=other.Func[::-1]
+        ans=(FPS(F_inverse)*(FPS(G_inverse).inv(d=m))).Func
+        return FPS(ans[m-1::-1])
+    def __bool__(self):
+        return any(self.Func)
+    def __mod__(self,other):
+        if not other:
+            raise ZeroDivisionError
+        self.reduce();other.reduce()
+        FG=self//other
+        ans=self-FG*other
+        ans.reduce()
+        return ans
+    def reduce(self):
+        if self:
+            while(not self.Func[-1]):
+                self.Func.pop()
+        else:
+            self.Func=[]
     def __itruediv__(self,other):
         self=self/other
         return self
