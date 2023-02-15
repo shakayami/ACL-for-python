@@ -29,12 +29,6 @@ class mf_graph:
         m=len(self.pos)
         result=[]
         for i in range(m):
-            result.append(self.get_edge(i))
-        return result
-    def edges_debug(self):
-        m=len(self.pos)
-        result=[]
-        for i in range(m):
             a,b,c,d=self.get_edge(i)
             result.append({"from":a,"to":b,"cap":c,"flow":d})
         return result
