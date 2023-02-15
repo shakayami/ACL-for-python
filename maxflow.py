@@ -13,8 +13,11 @@ class mf_graph:
         assert 0<=cap
         m=len(self.pos)
         self.pos.append((From,len(self.g[From])))
-        self.g[From].append({"to":To,"rev":len(self.g[To]),"cap":cap})
-        self.g[To].append({"to":From,"rev":len(self.g[From])-1,"cap":0})
+        from_id=len(self.g[From])
+        to_id=len(self.g[To])
+        if From==To:to_id+=1
+        self.g[From].append({"to":To,"rev":to_id,"cap":cap})
+        self.g[To].append({"to":From,"rev":from_id,"cap":0})
         return m
     def get_edge(self,i):
         m=len(self.pos)
@@ -42,6 +45,7 @@ class mf_graph:
     def flow(self,s,t,flow_limit=(1<<63)-1):
         assert 0<=s and s<self.n
         assert 0<=t and t<self.n
+        assert s!=t
         level=[0 for i in range(self.n)]
         Iter=[0 for i in range(self.n)]
         que=deque([])
@@ -50,7 +54,7 @@ class mf_graph:
             level[s]=0
             que=deque([])
             que.append(s)
-            while(len(que)>0):
+            while(que):
                 v=que.popleft()
                 for e in self.g[v]:
                     if e["cap"]==0 or level[e["to"]]>=0:continue
