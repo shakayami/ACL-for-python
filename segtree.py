@@ -66,7 +66,7 @@ class segtree():
                 break
         return self.n
     def min_left(self,r,f):
-        assert 0<=r and r<self.n
+        assert 0<=r and r<=self.n
         assert f(self.e)
         if r==0:
             return 0
