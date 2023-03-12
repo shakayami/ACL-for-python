@@ -74,7 +74,7 @@ class segtree():
         sm=self.e
         while(1):
             r-=1
-            while(r>1 & (r%2)):
+            while(r>1 and (r%2)):
                 r>>=1
             if not(f(self.op(self.d[r],sm))):
                 while(r<self.size):
