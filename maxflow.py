@@ -63,6 +63,7 @@ class mf_graph:
             res=0
             level_v=level[v]
             for i in range(Iter[v],len(self.g[v])):
+                Iter[v]=i
                 to,rev,cap=self.g[v][i]
                 if (level_v<=level[to] or self.g[to][rev][2]==0):continue
                 d=dfs(to,min(up-res,self.g[to][rev][2]))
