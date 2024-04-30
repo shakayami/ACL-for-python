@@ -1,9 +1,11 @@
 class dsu():
     n=1
     parent_or_size=[-1 for i in range(n)]
+    Leaders=set(range(n))
     def __init__(self,N):
         self.n=N
         self.parent_or_size=[-1 for i in range(N)]
+        self.Leaders=set(range(N))
     def merge(self,a,b):
         assert 0<=a<self.n, "0<=a<n,a={0},n={1}".format(a,self.n)
         assert 0<=b<self.n, "0<=b<n,b={0},n={1}".format(b,self.n)
@@ -43,4 +45,7 @@ class dsu():
             if len(result[i])>0:
                 result2.append(result[i])
         return result2
-
+    def leaders(self):
+        for v in self.Leaders:
+            if self.leader(v)==v:
+                yield v
