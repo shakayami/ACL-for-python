@@ -17,6 +17,7 @@ class dsu():
             x,y=y,x
         self.parent_or_size[x]+=self.parent_or_size[y]
         self.parent_or_size[y]=x
+        self.Leaders.discard(y)
         return x
     def same(self,a,b):
         assert 0<=a<self.n, "0<=a<n,a={0},n={1}".format(a,self.n)
