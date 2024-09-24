@@ -107,7 +107,7 @@ class string:
             s2=[0]*n
             now=0
             for i in range(n):
-                if (i& s[idx[i-1]]!=s[idx[i]]):
+                if (i and s[idx[i-1]]!=s[idx[i]]):
                     now+=1
                 s2[idx[i]]=now
             return string.sa_is(s2,now)
