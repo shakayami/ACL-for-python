@@ -25,6 +25,7 @@ python3系
 
 - twitter : @shakayami_kpro
 - githubのissue
+- githubのpull request
 
 バグは発見次第修正される予定です。
 
