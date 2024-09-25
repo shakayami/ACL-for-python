@@ -44,24 +44,28 @@ def crt(r,m):
             r0+=m0
     return (r0,m0)
 
-def floor_sum(n,m,a,b):
-    ans=0
-    if a<0:
-        a2=a%m
-        return floor_sum(n,m,a2,b)-n*(n-1)*((a2-a)//m)//2
-    if b<0:
-        b2=b%m
-        return floor_sum(n,m,a,b2)-n*((b2-b)//m)
-    if a>=m:
-        ans+=(n-1)*n*(a//m)//2
-        a%=m
-    if b>=m:
-        ans+=n*(b//m)
-        b%=m
-    y_max=(a*n+b)//m
-    x_max=(y_max*m-b)
-    if y_max==0:
-        return ans
-    ans+=(n-(x_max+a-1)//a)*y_max
-    ans+=floor_sum(y_max,a,m,(a-x_max%a)%a)
+def floor_sum(n, m, a, b):
+    ans = 0
+    while True:
+        if a < 0 or a >= m:
+            k = a // m
+            a = a % m
+            if a < 0:
+                a += m
+                k -= 1
+            ans += k * n * (n - 1) // 2
+        if b < 0 or b >= m:
+            k = b // m
+            b = b % m
+            if b < 0:
+                b += m
+                k -= 1
+            ans += k * n
+        y_max = (a * n + b) // m
+        if y_max == 0:
+            break
+        x_max = y_max * m - b
+        ans += (n - (x_max + a - 1) // a) * y_max
+        n, m, a, b = y_max, a, m, (a - x_max % a) % a
     return ans
+
