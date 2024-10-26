@@ -50,3 +50,22 @@ def prime_fact(N):
             res[p]+=1
             N//=p
     return res
+
+def divisors(N):
+    PF=prime_fact(N)
+    res=[1]
+    for p,e in PF.items():
+        for i in range(len(res)*e):
+            res.append(res[i]*p)
+    return res
+
+def totient(N):
+    PF=prime_fact(N)
+    res=N
+    for p in PF:
+        res-=res//p
+    return res
+
+
+def lcm(x,y):
+    return (x*y)//gcd(x,y)
