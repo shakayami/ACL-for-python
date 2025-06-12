@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Test all modules
+      run: |
+        python -m py_compile *.py
+        python -c "
+        import sys
+        import os
+        sys.path.insert(0, os.getcwd())
+        
+        modules = [
+            'convolution', 'dsu', 'fenwicktree', 'fps', 'lazysegtree',
+            'acl_math', 'maxflow', 'mincostflow', 'prime_fact', 'scc',
+            'segtree', 'string', 'two_sat'
+        ]
+        
+        for module in modules:
+            __import__(module)
+            print(f'✓ {module}')
+        
+        print('All modules ready for release!')
+        "
+    
+    - name: Create Release Archive
+      run: |
+        mkdir -p release
+        cp *.py release/
+        cp README.md LICENSE release/
+        cd release
+        tar -czf ../acl-python-${GITHUB_REF#refs/tags/}.tar.gz .
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          acl-python-*.tar.gz
+        body: |
+          ## ACL for Python Release
+          
+          This release contains all the AC Library modules ported to Python.
+          
+          ### Files included:
+          - All Python modules (.py files)
+          - README.md with usage instructions
+          - LICENSE file
+          
+          ### Compatibility:
+          - Python 3.8+
+          - PyPy 3.9+
+          - Tested on AtCoder environment
+          
+          Download the tar.gz file and extract to use the library.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

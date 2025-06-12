@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acl-python"
+version = "1.0.0"
+description = "AtCoder Library (ACL) ported to Python"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Unlicense"}
+authors = [
+    {name = "shakayami", email = "shakayami@example.com"}
+]
+keywords = ["competitive-programming", "algorithms", "data-structures", "atcoder"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: Public Domain",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+Homepage = "https://github.com/shakayami/ACL-for-python"
+Repository = "https://github.com/shakayami/ACL-for-python"
+Issues = "https://github.com/shakayami/ACL-for-python/issues"
+Wiki = "https://github.com/shakayami/ACL-for-python/wiki"
+
+[tool.setuptools]
+py-modules = [
+    "convolution",
+    "dsu", 
+    "fenwicktree",
+    "fps",
+    "lazysegtree",
+    "acl_math",
+    "maxflow",
+    "mincostflow",
+    "prime_fact",
+    "scc",
+    "segtree",
+    "string",
+    "two_sat"
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  __pycache__
+  | .git
+  | .pytest_cache
+  | build
+  | dist
+)/
+'''
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".pytest_cache"
+]
