@@ -48,7 +48,7 @@ py-modules = [
     "prime_fact",
     "scc",
     "segtree",
-    "string",
+    "acl_string",
     "two_sat"
 ]
 

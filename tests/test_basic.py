@@ -73,10 +73,10 @@ class TestBasicImports(unittest.TestCase):
         self.assertTrue(hasattr(segtree, 'segtree'))
     
     def test_string_import(self):
-        """Test string module import"""
-        import string as acl_string_module
+        """Test acl_string module import"""
+        import acl_string
         # Check for common string algorithms
-        self.assertTrue(hasattr(acl_string_module, 'string'))
+        self.assertTrue(hasattr(acl_string, 'string'))
     
     def test_two_sat_import(self):
         """Test 2-SAT module import"""

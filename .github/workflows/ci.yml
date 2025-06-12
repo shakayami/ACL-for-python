@@ -51,7 +51,7 @@ jobs:
         modules = [
             'convolution', 'dsu', 'fenwicktree', 'fps', 'lazysegtree',
             'acl_math', 'maxflow', 'mincostflow', 'prime_fact', 'scc',
-            'segtree', 'string', 'two_sat'
+            'segtree', 'acl_string', 'two_sat'
         ]
         
         for module in modules:
@@ -89,7 +89,7 @@ jobs:
         modules = [
             'convolution', 'dsu', 'fenwicktree', 'fps', 'lazysegtree',
             'acl_math', 'maxflow', 'mincostflow', 'prime_fact', 'scc',
-            'segtree', 'string', 'two_sat'
+            'segtree', 'acl_string', 'two_sat'
         ]
         
         for module in modules:

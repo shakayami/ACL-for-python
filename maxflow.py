@@ -56,7 +56,7 @@ class mf_graph:
         m=len(self.pos)
         assert 0<=i and i<m
         assert 0<=new_flow and new_flow<=new_cap
-        _e=self.g[pos[i][0]][pos[i][1]]
+        _e=self.g[self.pos[i][0]][self.pos[i][1]]
         _re=self.g[_e.to][_e.rev]
         _e.cap=new_cap-new_flow
         _re.cap=new_flow
