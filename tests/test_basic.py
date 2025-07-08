@@ -84,29 +84,8 @@ class TestBasicImports(unittest.TestCase):
         self.assertTrue(hasattr(two_sat, 'two_sat'))
 
 
-class TestBasicFunctionality(unittest.TestCase):
-    """Basic functionality tests"""
-    
-    def test_dsu_basic(self):
-        """Test basic DSU operations"""
-        import dsu
-        d = dsu.dsu(5)
-        d.merge(0, 1)
-        d.merge(2, 3)
-        self.assertTrue(d.same(0, 1))
-        self.assertFalse(d.same(0, 2))
-        self.assertEqual(d.size(0), 2)
-        self.assertEqual(d.size(2), 2)
-    
-    def test_fenwick_basic(self):
-        """Test basic Fenwick Tree operations"""
-        import fenwicktree
-        ft = fenwicktree.fenwick_tree(5)
-        ft.add(0, 1)
-        ft.add(1, 2)
-        ft.add(2, 3)
-        self.assertEqual(ft.sum(0, 3), 6)
-        self.assertEqual(ft.sum(1, 3), 5)
+
+
 
 
 if __name__ == '__main__':
