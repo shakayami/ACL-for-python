@@ -407,7 +407,7 @@ class FPS:
 
     def __rshift__(self, d):
         n = len(self.Func)
-        return FPS(self.Func[min(n, d) :] + [0] *  min(n,d))
+        return FPS(self.Func[min(n, d) :] + [0] * min(n, d))
 
     def __irshift__(self, d):
         self = self >> d
@@ -547,7 +547,7 @@ class FPS:
         while i < deg:
             ret = (ret + FPS(self.Func[: i << 1]) * ret.inv(i << 1)) * inv2
             i <<= 1
-        self= FPS(ret.Func[:deg])
+        self = FPS(ret.Func[:deg])
         return self
 
     def resize(self, deg):
