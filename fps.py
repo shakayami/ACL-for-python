@@ -399,9 +399,7 @@ class FPS:
         return self
 
     def __lshift__(self, d):
-        n = len(self.Func)
-        self.Func = [0] * d + self.Func
-        return FPS(self.Func[:n])
+        return FPS([0] * d + self.Func)
 
     def __ilshift__(self, d):
         self = self << d
@@ -409,9 +407,7 @@ class FPS:
 
     def __rshift__(self, d):
         n = len(self.Func)
-        self.Func = self.Func[min(n, d) :]
-        self.Func += [0] * (n - len(self.Func))
-        return FPS(self.Func)
+        return FPS(self.Func[min(n, d) :] + [0] *  min(n,d))
 
     def __irshift__(self, d):
         self = self >> d
@@ -456,6 +452,9 @@ class FPS:
         return self.Func != other.Func
 
     def __str__(self):
+        return f"FPS({self.Func})"
+
+    def __repr__(self):
         return f"FPS({self.Func})"
 
     def diff(self):
@@ -548,7 +547,8 @@ class FPS:
         while i < deg:
             ret = (ret + FPS(self.Func[: i << 1]) * ret.inv(i << 1)) * inv2
             i <<= 1
-        return FPS(ret.Func[:deg])
+        self= FPS(ret.Func[:deg])
+        return self
 
     def resize(self, deg):
         if len(self.Func) < deg:
@@ -556,7 +556,7 @@ class FPS:
         elif len(self.Func) > deg:
             return FPS(self.Func[:deg])
         else:
-            return self
+            return FPS(self.Func)
 
     def exp(self, deg=-1):
         n = len(self.Func)
@@ -566,40 +566,41 @@ class FPS:
         assert deg >= 0
         g = [1]
         g_fft = [1, 1]
-        self.Func[0] = 1
-        self.resize(deg)
-        h_drv = self.diff()
+        ret = FPS(self.Func[:])
+        ret.Func[0] = 1
+        ret.resize(deg)
+        h_drv = ret.diff()
         m = 2
         while m < deg:
-            f_fft = self.Func[:m] + [0] * m
-            self.butterfly(f_fft)
+            f_fft = ret.Func[:m] + [0] * m
+            ret.butterfly(f_fft)
 
             # step 2.a
-            _g = [f_fft[i] * g_fft[i] % self.mod for i in range(m)]
-            self.butterfly_inv(_g)
+            _g = [f_fft[i] * g_fft[i] % ret.mod for i in range(m)]
+            ret.butterfly_inv(_g)
             _g = _g[m // 2 : m] + [0] * (m // 2)
-            self.butterfly(_g)
+            ret.butterfly(_g)
             for i in range(m):
                 _g[i] *= g_fft[i]
-                _g[i] %= self.mod
-            self.butterfly_inv(_g)
-            tmp = pow(-m * m, self.mod - 2, self.mod)
+                _g[i] %= ret.mod
+            ret.butterfly_inv(_g)
+            tmp = pow(-m * m, ret.mod - 2, ret.mod)
             for i in range(m):
                 _g[i] *= tmp
-                _g[i] %= self.mod
+                _g[i] %= ret.mod
             g += _g[: m // 2]
             # step 2.b--2.d
-            t = FPS(self.Func[:m]).diff()
+            t = FPS(ret.Func[:m]).diff()
             r = h_drv.Func[: m - 1] + [0]
-            self.butterfly(r)
+            ret.butterfly(r)
             for i in range(m):
                 r[i] *= f_fft[i]
-                r[i] %= self.mod
-            self.butterfly_inv(r)
-            tmp = pow(-m, self.mod - 2, self.mod)
+                r[i] %= ret.mod
+            ret.butterfly_inv(r)
+            tmp = pow(-m, ret.mod - 2, ret.mod)
             for i in range(m):
                 r[i] *= tmp
-                r[i] %= self.mod
+                r[i] %= ret.mod
             t = (t + FPS(r)).Func
             t = [t[-1]] + t
             t.pop()
@@ -609,22 +610,22 @@ class FPS:
                     t += [0] * (2 * m - len(t))
                 elif len(t) > 2 * m:
                     t = t[: 2 * m]
-                self.butterfly(t)
+                ret.butterfly(t)
                 g_fft = g[:]
                 if len(g_fft) < 2 * m:
                     g_fft += [0] * (2 * m - len(g_fft))
                 elif len(g_fft) > 2 * m:
                     g_fft = g_fft[: 2 * m]
-                self.butterfly(g_fft)
+                ret.butterfly(g_fft)
                 for i in range(2 * m):
                     t[i] *= g_fft[i]
-                    t[i] %= self.mod
-                self.butterfly_inv(t)
-                tmp = pow(2 * m, self.mod - 2, self.mod)
+                    t[i] %= ret.mod
+                ret.butterfly_inv(t)
+                tmp = pow(2 * m, ret.mod - 2, ret.mod)
                 t = t[:m]
                 for i in range(m):
                     t[i] *= tmp
-                    t[i] %= self.mod
+                    t[i] %= ret.mod
             else:
                 g1 = g[m // 2 :]
                 s1 = t[m // 2 :]
@@ -633,50 +634,50 @@ class FPS:
                 s1 += [0] * (m - len(s1))
                 t += [0] * (m - len(t))
 
-                self.butterfly(g1)
-                self.butterfly(t)
-                self.butterfly(s1)
+                ret.butterfly(g1)
+                ret.butterfly(t)
+                ret.butterfly(s1)
                 for i in range(m):
-                    s1[i] = (g_fft[i] * s1[i] + g1[i] * t[i]) % self.mod
+                    s1[i] = (g_fft[i] * s1[i] + g1[i] * t[i]) % ret.mod
                 for i in range(m):
                     t[i] *= g_fft[i]
-                    t[i] %= self.mod
-                self.butterfly_inv(t)
-                self.butterfly_inv(s1)
+                    t[i] %= ret.mod
+                ret.butterfly_inv(t)
+                ret.butterfly_inv(s1)
                 for i in range(m // 2):
                     t[i + m // 2] += s1[i]
-                    t[i + m // 2] %= self.mod
-                tmp = pow(m, self.mod - 2, self.mod)
+                    t[i + m // 2] %= ret.mod
+                tmp = pow(m, ret.mod - 2, ret.mod)
                 for i in range(m):
                     t[i] *= tmp
-                    t[i] %= self.mod
+                    t[i] %= ret.mod
             # step 2.f
-            v = self.Func[m : min(deg, 2 * m)] + [0] * (2 * m - min(deg, 2 * m))
+            v = ret.Func[m : min(deg, 2 * m)] + [0] * (2 * m - min(deg, 2 * m))
             t = [0] * (m - 1) + t
             t = FPS(t).integral().Func
             for i in range(m):
                 v[i] -= t[m + i]
-                v[i] %= self.mod
+                v[i] %= ret.mod
             # step 2.g
             if len(v) < 2 * m:
                 v += [0] * (2 * m - len(v))
             else:
                 v = v[: 2 * m]
-            self.butterfly(v)
+            ret.butterfly(v)
             for i in range(2 * m):
                 v[i] *= f_fft[i]
                 v[i] %= self.mod
-            self.butterfly_inv(v)
+            ret.butterfly_inv(v)
             v = v[:m]
-            tmp = pow(2 * m, self.mod - 2, self.mod)
+            tmp = pow(2 * m, ret.mod - 2, ret.mod)
             for i in range(m):
                 v[i] *= tmp
-                v[i] %= self.mod
+                v[i] %= ret.mod
             # step 2.h
             for i in range(min(deg - m, m)):
-                self.Func[m + i] = v[i]
+                ret.Func[m + i] = v[i]
             m *= 2
-        return self
+        return ret
 
     def powfps(self, k, deg=-1):
         a = self.Func[:]
