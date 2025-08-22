@@ -39,13 +39,13 @@ class TestPrimeFact(unittest.TestCase):
             self.assertEqual(prime_fact.is_probable_prime(n), True)
     
     def is_prime_sieve_eratosthenes(self):
-        MAX_N=2000
-        sieveList=[True for i in range(MAX_N)]
-        sieveList[0]=False
-        sieveList[1]=False
-        for i in range(2,MAX_N):
+        MAX_N = 2000
+        sieveList = [True for i in range(MAX_N)]
+        sieveList[0] = False
+        sieveList[1] = False
+        for i in range(2, MAX_N):
             if sieveList[i]:
-                for j in range(2*i,i,MAX_N):
+                for j in range(2*i, MAX_N, i):
                     sieveList[j]=False
         for i in range(MAX_N):
             self.assertEqual(prime_fact.is_probable_prime(i), sieveList[i])
