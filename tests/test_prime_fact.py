@@ -48,7 +48,7 @@ class TestPrimeFact(unittest.TestCase):
                 for j in range(2*i,i,MAX_N):
                     sieveList[j]=False
         for i in range(MAX_N):
-            self.assertEqual(prime_fact.is_probable_prime,sieveList[i])
+            self.assertEqual(prime_fact.is_probable_prime(i), sieveList[i])
 
     def test_is_prime(self):
         self.is_prime_example()
