@@ -22,9 +22,15 @@ class TestPrimeFact(unittest.TestCase):
         ansList=[False,True,True,False,True,False]
         for n,f in zip(numList,ansList):
             self.assertEqual(prime_fact.is_probable_prime(n),f)
+    
+    def is_prime_hackissue1325(self):
+        numList=[10,2047,1373653,9080191,25326001,3215031751,4759123141,1122004669633,2152302898747,3474749660383,341550071728321]
+        for n in numList:
+            self.assertEqual(prime_fact.is_probable_prime(n),False)
 
     def test_is_prime(self):
         self.is_prime_example()
+        self.is_prime_hackissue1325()
 
     def test_divisors(self):
         """Test divisor enumeration"""
