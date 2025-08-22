@@ -1,25 +1,37 @@
-from math import gcd
+from math import gcd, isqrt
 import random
 from collections import Counter
 
 
 def is_probable_prime(n):
-    if n == 2:
-        return True
-    if n == 1 or n & 1 == 0:
+    if n < 2:
         return False
-    d = (n - 1) >> 1
-    while d & 1 == 0:
-        d >>= 1
+    SMALL_PRIME = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+    for p in SMALL_PRIME:
+        if n == p:
+            return True
+        if n % p == 0:
+            return False
 
-    for k in range(100):
-        a = random.randint(1, n - 1)
-        t = d
-        y = pow(a, t, n)
-        while t != n - 1 and y != 1 and y != n - 1:
-            y = (y * y) % n
-            t <<= 1
-        if y != n - 1 and t & 1 == 0:
+    r = isqrt(n)
+    if r * r == n:
+        return False
+
+    d = n - 1
+    s = (d & -d).bit_length() - 1
+    d >>= s
+
+    for a in SMALL_PRIME:
+        if a >= n:
+            continue
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(s - 1):
+            x = (x * x) % n
+            if x == n - 1:
+                break
+        else:
             return False
     return True
 
