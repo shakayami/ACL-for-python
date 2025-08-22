@@ -38,11 +38,24 @@ class TestPrimeFact(unittest.TestCase):
         for n in numList:
             self.assertEqual(prime_fact.is_probable_prime(n), True)
     
+    def is_prime_sieve_eratosthenes(self):
+        MAX_N=2000
+        sieveList=[True for i in range(MAX_N)]
+        sieveList[0]=False
+        sieveList[1]=False
+        for i in range(2,MAX_N):
+            if sieveList[i]:
+                for j in range(2*i,i,MAX_N):
+                    sieveList[j]=False
+        for i in range(MAX_N):
+            self.assertEqual(prime_fact.is_probable_prime,sieveList[i])
+
     def test_is_prime(self):
         self.is_prime_example()
         self.is_prime_hackissue1325()
         self.is_prime_carmichael()
         self.is_prime_true_case_18_dig()
+        self.is_prime_sieve_eratosthenes()
 
     def test_divisors(self):
         """Test divisor enumeration"""
