@@ -17,10 +17,14 @@ class TestPrimeFact(unittest.TestCase):
         # TODO: Add test cases for prime factorization
         pass
 
+    def is_prime_example(self):
+        numList=[1,2,3,4,998244353,1000000000000000000]
+        ansList=[False,True,True,False,True,False]
+        for n,f in zip(numList,ansList):
+            self.assertEqual(prime_fact.is_probable_prime(n),f)
+
     def test_is_prime(self):
-        """Test primality testing"""
-        # TODO: Add test cases for primality testing
-        pass
+        self.is_prime_example()
 
     def test_divisors(self):
         """Test divisor enumeration"""
