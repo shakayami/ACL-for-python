@@ -1,6 +1,6 @@
 import math
 import random
-import collections.Counter
+import collections
 
 def is_probable_prime(n):
     if n < 2:
