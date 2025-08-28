@@ -11,15 +11,18 @@ import prime_fact
 
 class TestPrimeFact(unittest.TestCase):
     """Test cases for prime_fact module"""
-    def primefact_selfcheck(self,N):
+
+    def primefact_selfcheck(self, N):
         from collections import Counter
-        PF=prime_fact.prime_fact(N)
-        M=1
-        for p,e in PF.items():
-            M*=pow(p,e)
-        self.assertEqual(N,M)
+
+        PF = prime_fact.prime_fact(N)
+        M = 1
+        for p, e in PF.items():
+            M *= pow(p, e)
+        self.assertEqual(N, M)
+
     def test_prime_factorization(self):
-        for n in range(1,10**5):
+        for n in range(1, 10**5):
             self.primefact_selfcheck(n)
 
     def is_prime_example(self):
