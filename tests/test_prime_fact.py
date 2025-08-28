@@ -24,13 +24,12 @@ class TestPrimeFact(unittest.TestCase):
     def test_prime_factorization(self):
         for n in range(1, 10**5):
             self.primefact_selfcheck(n)
-        
-        for n in range(10**9, 10**9+1000):
+
+        for n in range(10**9, 10**9 + 1000):
             self.primefact_selfcheck(n)
-        
-        for n in range(10**17, 10**17+1000):
+
+        for n in range(10**17, 10**17 + 1000):
             self.primefact_selfcheck(n)
-        
 
     def is_prime_example(self):
         numList = [1, 2, 3, 4, 998244353, 1000000000000000000]
