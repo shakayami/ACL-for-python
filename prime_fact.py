@@ -1,7 +1,6 @@
 import math
 import random
-from collections import Counter
-
+import collections.Counter
 
 def is_probable_prime(n):
     if n < 2:
@@ -54,7 +53,7 @@ def _solve(N):
 
 
 def prime_fact(N):
-    res = Counter()
+    res = collections.Counter()
     p = 2
     while p <= 10**4 and N > 1:
         if N % p == 0:
