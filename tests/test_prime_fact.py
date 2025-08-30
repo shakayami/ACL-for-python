@@ -1323,11 +1323,11 @@ class TestPrimeFact(unittest.TestCase):
                 self.assertEqual(n % d, 0)
 
         # Test lcm property: lcm(a,b) * gcd(a,b) = a * b
-        from math import gcd
+        import math
 
         test_pairs = [(12, 18), (15, 20), (7, 11)]
         for a, b in test_pairs:
-            self.assertEqual(prime_fact.lcm(a, b) * gcd(a, b), a * b)
+            self.assertEqual(prime_fact.lcm(a, b) * math.gcd(a, b), a * b)
 
     def test_consistency_checks(self):
         """Test consistency between different functions"""

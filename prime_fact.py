@@ -1,6 +1,6 @@
-from math import gcd, isqrt
+import math
 import random
-from collections import Counter
+import collections
 
 
 def is_probable_prime(n):
@@ -13,7 +13,7 @@ def is_probable_prime(n):
         if n % p == 0:
             return False
 
-    r = isqrt(n)
+    r = math.isqrt(n)
     if r * r == n:
         return False
 
@@ -45,7 +45,7 @@ def _solve(N):
         y = (x * x + c) % N
         d = 1
         while d == 1:
-            d = gcd(x - y, N)
+            d = math.gcd(x - y, N)
             x = (x * x + c) % N
             y = (y * y + c) % N
             y = (y * y + c) % N
@@ -54,7 +54,7 @@ def _solve(N):
 
 
 def prime_fact(N):
-    res = Counter()
+    res = collections.Counter()
     p = 2
     while p <= 10**4 and N > 1:
         if N % p == 0:
@@ -88,4 +88,4 @@ def totient(N):
 
 
 def lcm(x, y):
-    return (x * y) // gcd(x, y)
+    return (x * y) // math.gcd(x, y)
