@@ -1,5 +1,4 @@
-from collections import deque
-
+import collections
 
 class mf_graph:
     n = 0
@@ -83,7 +82,7 @@ class mf_graph:
         assert s != t
         level = [0 for i in range(self.n)]
         Iter = [0 for i in range(self.n)]
-        que = deque([])
+        que = collections.deque([])
 
         def bfs():
             for i in range(self.n):
@@ -136,7 +135,7 @@ class mf_graph:
 
     def min_cut(self, s):
         visited = [False for i in range(self.n)]
-        que = deque([s])
+        que = collections.deque([s])
         while que:
             p = que.popleft()
             visited[p] = True
