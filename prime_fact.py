@@ -2,6 +2,7 @@ import math
 import random
 import collections
 
+
 def is_probable_prime(n):
     if n < 2:
         return False

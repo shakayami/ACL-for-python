@@ -1,5 +1,6 @@
 import collections
 
+
 class mf_graph:
     n = 0
     g = []
