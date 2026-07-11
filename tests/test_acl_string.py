@@ -6,16 +6,15 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import acl_string
+from acl_string import String
 
 
 class TestACLString(unittest.TestCase):
-    """Test cases for acl_string module"""
-
-    def practice2_i(self, S, answer):
-        sa = acl_string.string.suffix_array(S)
-        res = (len(S) * (len(S) + 1)) // 2
-        for x in acl_string.string.lcp_array(S, sa):
+    def practice2_i(self, s, answer):
+        st = String(s)
+        sa = st.suffix_array()
+        res = (len(s) * (len(s) + 1)) // 2
+        for x in st.lcp_array(sa):
             res -= x
         self.assertEqual(res, answer)
 
@@ -26,19 +25,29 @@ class TestACLString(unittest.TestCase):
         self.practice2_i("aaaaa", 5)
 
     def test_suffix_array(self):
-        """Test suffix array functionality"""
-        # TODO: Add test cases for suffix array
-        pass
-
-    def test_z_algorithm(self):
-        """Test Z algorithm functionality"""
-        # TODO: Add test cases for Z algorithm
-        pass
+        sa = String("abab").suffix_array()
+        self.assertEqual(sa, [2, 0, 3, 1])
 
     def test_lcp_array(self):
-        """Test LCP array functionality"""
-        # TODO: Add test cases for LCP array
-        pass
+        st = String("abab")
+        sa = st.suffix_array()
+        lcp = st.lcp_array(sa)
+        self.assertEqual(lcp, [2, 0, 1])
+
+    def test_lcp_array_auto_sa(self):
+        # lcp_array without explicit sa computes it internally
+        lcp = String("abab").lcp_array()
+        self.assertEqual(lcp, [2, 0, 1])
+
+    def test_z_algorithm(self):
+        self.assertEqual(String("aabxaa").z_algorithm(), [6, 1, 0, 0, 2, 1])
+        self.assertEqual(String("abcabcabc").z_algorithm(), [9, 0, 0, 6, 0, 0, 3, 0, 0])
+
+    def test_len_and_getitem(self):
+        st = String("hello")
+        self.assertEqual(len(st), 5)
+        self.assertEqual(st[0], "h")
+        self.assertEqual(st[-1], "o")
 
 
 if __name__ == "__main__":
