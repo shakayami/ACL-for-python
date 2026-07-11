@@ -66,17 +66,19 @@ class mcf_graph:
         pe = [0 for i in range(self.n)]
         vis = [False for i in range(self.n)]
 
+        n = self.n
+
         def dual_ref():
-            for i in range(self.n):
+            for i in range(n):
                 dist[i] = -1 - (-1 << 63)
                 pv[i] = -1
                 pe[i] = -1
                 vis[i] = False
             que = []
-            heapq.heappush(que, (0, s))
+            heapq.heappush(que, s)
             dist[s] = 0
             while que:
-                v = heapq.heappop(que)[1]
+                v = heapq.heappop(que) % n
                 if vis[v]:
                     continue
                 vis[v] = True
@@ -100,7 +102,7 @@ class mcf_graph:
                         dist[e["to"]] = dist[v] + cost
                         pv[e["to"]] = v
                         pe[e["to"]] = i
-                        heapq.heappush(que, (dist[e["to"]], e["to"]))
+                        heapq.heappush(que, dist[e["to"]] * n + e["to"])
             if not (vis[t]):
                 return False
             for v in range(self.n):
