@@ -101,26 +101,39 @@ class mf_graph:
                         return
                     que.append(e.to)
 
-        def dfs(v, up):
-            if v == s:
-                return up
-            res = 0
-            level_v = level[v]
-            for i in range(Iter[v], len(self.g[v])):
-                e = self.g[v][i]
-                assert id(e) == id(self.g[v][i])
-                if level_v <= level[e.to] or self.g[e.to][e.rev].cap == 0:
-                    continue
-                d = dfs(e.to, min(up - res, self.g[e.to][e.rev].cap))
-                if d <= 0:
-                    continue
-                self.g[v][i].cap += d
-                self.g[e.to][e.rev].cap -= d
-                res += d
-                if res == up:
-                    return res
-            level[v] = self.n
-            return res
+        def dfs(s_, t_, up):
+            # stack entries: (node, flow_into_node)
+            stack = [(t_, up)]
+            # path: list of (node, edge_index) used to trace back
+            path = []
+            while stack:
+                v, f = stack[-1]
+                if v == s_:
+                    # found augmenting path; update capacities along path
+                    d = f
+                    for node, ei in reversed(path):
+                        e = self.g[node][ei]
+                        self.g[node][ei].cap += d
+                        self.g[e.to][e.rev].cap -= d
+                    return d
+                level_v = level[v]
+                found = False
+                while Iter[v] < len(self.g[v]):
+                    i = Iter[v]
+                    e = self.g[v][i]
+                    rev_cap = self.g[e.to][e.rev].cap
+                    if level_v > level[e.to] and rev_cap > 0:
+                        path.append((v, i))
+                        stack.append((e.to, min(f, rev_cap)))
+                        found = True
+                        break
+                    Iter[v] += 1
+                if not found:
+                    level[v] = self.n
+                    stack.pop()
+                    if path:
+                        path.pop()
+            return 0
 
         flow = 0
         while flow < flow_limit:
@@ -128,7 +141,7 @@ class mf_graph:
             if level[t] == -1:
                 break
             Iter = [0 for i in range(self.n)]
-            f = dfs(t, flow_limit - flow)
+            f = dfs(s, t, flow_limit - flow)
             if not (f):
                 break
             flow += f
