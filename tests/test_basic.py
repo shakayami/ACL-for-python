@@ -92,7 +92,7 @@ class TestBasicImports(unittest.TestCase):
         import acl_string
 
         # Check for common string algorithms
-        self.assertTrue(hasattr(acl_string, "string"))
+        self.assertTrue(hasattr(acl_string, "String"))
 
     def test_two_sat_import(self):
         """Test 2-SAT module import"""
