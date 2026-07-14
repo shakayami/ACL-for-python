@@ -21,7 +21,7 @@ def _benchmark_name(raw_name):
     if m:
         return m.group(1)
     if raw_name.startswith("test_"):
-        return raw_name[len("test_"):]
+        return raw_name[len("test_") :]
     return raw_name
 
 
@@ -77,10 +77,14 @@ def build_table(names, base_map, pr_map, fmt_value):
         base_v = base_map.get(name)
         pr_v = pr_map.get(name)
         if base_v is None or pr_v is None:
-            lines.append(f"| {name} | {'n/a' if base_v is None else fmt_value(base_v)} | "
-                         f"{'n/a' if pr_v is None else fmt_value(pr_v)} | n/a |")
+            lines.append(
+                f"| {name} | {'n/a' if base_v is None else fmt_value(base_v)} | "
+                f"{'n/a' if pr_v is None else fmt_value(pr_v)} | n/a |"
+            )
             continue
-        lines.append(f"| {name} | {fmt_value(base_v)} | {fmt_value(pr_v)} | {fmt_delta(base_v, pr_v)} |")
+        lines.append(
+            f"| {name} | {fmt_value(base_v)} | {fmt_value(pr_v)} | {fmt_delta(base_v, pr_v)} |"
+        )
     return "\n".join(lines)
 
 
@@ -101,20 +105,28 @@ def main():
     time_names = sorted(set(base_time) | set(pr_time))
     memory_names = sorted(set(base_memory) | set(pr_memory))
 
-    report = ["## \U0001F4CA Performance Benchmark Results", ""]
+    report = ["## \U0001f4ca Performance Benchmark Results", ""]
     if not time_names and not memory_names:
         report.append("No benchmark results were produced.")
     else:
         report.append("### ⏱️ Execution time (mean, lower is better)")
-        report.append(build_table(time_names, base_time, pr_time, fmt_time) if time_names else "n/a")
+        report.append(
+            build_table(time_names, base_time, pr_time, fmt_time)
+            if time_names
+            else "n/a"
+        )
         report.append("")
-        report.append("### \U0001F4BE Peak memory (lower is better)")
-        report.append(build_table(memory_names, base_memory, pr_memory, fmt_bytes) if memory_names else "n/a")
+        report.append("### \U0001f4be Peak memory (lower is better)")
+        report.append(
+            build_table(memory_names, base_memory, pr_memory, fmt_bytes)
+            if memory_names
+            else "n/a"
+        )
         report.append("")
         report.append(
             "<sub>Base = target branch, PR = this branch. Negative delta = improvement. "
             "✅ improvement ≥ 1%, ⚠️ regression > 5%. "
-            "\"n/a\" base entries mean the target branch has no benchmark suite yet.</sub>"
+            '"n/a" base entries mean the target branch has no benchmark suite yet.</sub>'
         )
 
     text = "\n".join(report)
