@@ -15,6 +15,7 @@ import maxflow as maxflow_mod
 import mincostflow as mincostflow_mod
 import convolution as convolution_mod
 import scc as scc_mod
+import fps as fps_mod
 
 MOD = 998244353
 
@@ -179,6 +180,20 @@ def run_scc(n, edges):
     return scc_mod.scc(n, edges)
 
 
+def build_fps_workload():
+    r = _rng(8)
+    n = 8_192
+    seq = [0] + [r.randrange(MOD) for _ in range(n - 1)]
+    return (seq,)
+
+
+def run_fps(seq):
+    a = fps_mod.FPS(seq)
+    b = a.exp()
+    c = b.log()
+    return c.resize(len(seq))
+
+
 BENCHMARKS = [
     ("segtree", build_segtree_workload, run_segtree),
     ("lazysegtree", build_lazysegtree_workload, run_lazysegtree),
@@ -187,4 +202,5 @@ BENCHMARKS = [
     ("mincostflow", build_mincostflow_workload, run_mincostflow),
     ("convolution", build_convolution_workload, run_convolution),
     ("scc", build_scc_workload, run_scc),
+    ("fps", build_fps_workload, run_fps),
 ]
