@@ -29,6 +29,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "pytest-benchmark", "flake8", "black"]
+
 [project.urls]
 Homepage = "https://github.com/shakayami/ACL-for-python"
 Repository = "https://github.com/shakayami/ACL-for-python"
