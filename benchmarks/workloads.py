@@ -243,6 +243,21 @@ def run_convolution(a, b):
     return fft.convolution(a, b)
 
 
+# A long array against a short one. This is the other cost regime of
+# convolution (and a common one in practice), so it is benchmarked separately
+# from the balanced case above.
+def build_convolution_lopsided_workload():
+    r = _rng(14)
+    a = [r.randrange(MOD) for _ in range(1 << 16)]
+    b = [r.randrange(MOD) for _ in range(256)]
+    return a, b
+
+
+def run_convolution_lopsided(a, b):
+    fft = convolution_mod.FFT(MOD)
+    return fft.convolution(a, b)
+
+
 # ---------------------------------------------------------------------------
 # scc: Tarjan's algorithm on a large random directed graph
 # ---------------------------------------------------------------------------
@@ -413,6 +428,11 @@ BENCHMARKS = [
     ("maxflow", build_maxflow_workload, run_maxflow),
     ("mincostflow", build_mincostflow_workload, run_mincostflow),
     ("convolution", build_convolution_workload, run_convolution),
+    (
+        "convolution_lopsided",
+        build_convolution_lopsided_workload,
+        run_convolution_lopsided,
+    ),
     ("scc", build_scc_workload, run_scc),
     ("fps", build_fps_workload, run_fps),
     ("fenwicktree", build_fenwicktree_workload, run_fenwicktree),
