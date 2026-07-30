@@ -10,53 +10,55 @@ def scc(N, edges):
     for e in edges:
         elist[counter[e[0]]] = e[1]
         counter[e[0]] += 1
-    visited = []
+
     low = [0] * N
     Ord = [-1] * N
     ids = [0] * N
-    NG = [0, 0]
+    visited = []
+    now_ord = 0
+    group_num = 0
 
-    def dfs(v):
-        stack = [(v, -1, 0), (v, -1, 1)]
-        while stack:
-            v, bef, t = stack.pop()
-            if t:
-                if bef != -1 and Ord[v] != -1:
-                    low[bef] = min(low[bef], Ord[v])
-                    stack.pop()
-                    continue
-                low[v] = NG[0]
-                Ord[v] = NG[0]
-                NG[0] += 1
-                visited.append(v)
-                for i in range(start[v], start[v + 1]):
-                    to = elist[i]
-                    if Ord[to] == -1:
-                        stack.append((to, v, 0))
-                        stack.append((to, v, 1))
-                    else:
-                        low[v] = min(low[v], Ord[to])
+    for root in range(N):
+        if Ord[root] != -1:
+            continue
+        node_stack = [root]
+        it_stack = [start[root + 1] - 1]
+        low[root] = Ord[root] = now_ord
+        now_ord += 1
+        visited.append(root)
+        while node_stack:
+            v = node_stack[-1]
+            i = it_stack[-1]
+            if i >= start[v]:
+                it_stack[-1] = i - 1
+                to = elist[i]
+                if Ord[to] == -1:
+                    low[to] = Ord[to] = now_ord
+                    now_ord += 1
+                    visited.append(to)
+                    node_stack.append(to)
+                    it_stack.append(start[to + 1] - 1)
+                elif Ord[to] < low[v]:
+                    low[v] = Ord[to]
             else:
+                node_stack.pop()
+                it_stack.pop()
                 if low[v] == Ord[v]:
                     while True:
                         u = visited.pop()
                         Ord[u] = N
-                        ids[u] = NG[1]
+                        ids[u] = group_num
                         if u == v:
                             break
-                    NG[1] += 1
-                low[bef] = min(low[bef], low[v])
+                    group_num += 1
+                if node_stack:
+                    bef = node_stack[-1]
+                    if low[v] < low[bef]:
+                        low[bef] = low[v]
 
     for i in range(N):
-        if Ord[i] == -1:
-            dfs(i)
-    for i in range(N):
-        ids[i] = NG[1] - 1 - ids[i]
-    group_num = NG[1]
-    counts = [0] * group_num
-    for x in ids:
-        counts[x] += 1
-    groups = [[] for i in range(group_num)]
+        ids[i] = group_num - 1 - ids[i]
+    groups = [[] for _ in range(group_num)]
     for i in range(N):
         groups[ids[i]].append(i)
     return groups
