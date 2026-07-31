@@ -1,0 +1,151 @@
+name: Benchmark (full sweep)
+
+# Pull requests only benchmark the modules they touch, which keeps Actions time
+# down but means no single PR ever sees the whole picture. This sweep runs
+# every workload on master and compares against the previous sweep, so drift
+# that accumulates across many small PRs still shows up somewhere.
+
+on:
+  schedule:
+    # 03:00 UTC every Monday.
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      scale:
+        description: 'ACL_BENCH_SCALE (a fraction, or "max" for the judge limits)'
+        required: false
+        default: '1.0'
+      passes:
+        description: 'Interleaved measurement passes'
+        required: false
+        default: '3'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: benchmark-full
+  cancel-in-progress: false
+
+jobs:
+  full-sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      ACL_BENCH_SCALE: ${{ github.event.inputs.scale || '1.0' }}
+      ACL_BENCH_ROUNDS: '1'
+      PASSES: ${{ github.event.inputs.passes || '3' }}
+      ARTIFACT_NAME: benchmark-full-results
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-benchmark
+
+      - name: Run full suite
+        run: |
+          set -x
+          for pass in $(seq 1 "$PASSES"); do
+            pytest benchmarks/test_time.py --benchmark-only \
+              --benchmark-json="current-time-$pass.json"
+          done
+          python benchmarks/memory_bench.py --output current-memory.json
+
+      # Fetch the previous sweep so the summary shows deltas rather than bare
+      # numbers. Absent (first run, expired retention), the report still
+      # renders with the current times and n/a deltas.
+      - name: Download previous sweep
+        id: previous
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'benchmark-full.yml',
+              status: 'success',
+              per_page: 10,
+            });
+            for (const run of runs.data.workflow_runs) {
+              if (run.id === context.runId) continue;
+              const arts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id,
+              });
+              const art = arts.data.artifacts.find(
+                a => a.name === process.env.ARTIFACT_NAME && !a.expired
+              );
+              if (!art) continue;
+              const zip = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: art.id,
+                archive_format: 'zip',
+              });
+              fs.writeFileSync('previous.zip', Buffer.from(zip.data));
+              core.setOutput('found', 'true');
+              core.setOutput('sha', run.head_sha);
+              core.info(`Comparing against run ${run.id} (${run.head_sha})`);
+              return;
+            }
+            core.setOutput('found', 'false');
+            core.info('No previous sweep artifact available.');
+
+      - name: Unpack previous sweep
+        run: |
+          mkdir -p previous
+          if [ "${{ steps.previous.outputs.found }}" = "true" ] && [ -f previous.zip ]; then
+            unzip -o -q previous.zip -d previous
+          fi
+          # compare.py needs a base to read even when there is no history yet.
+          if ! ls previous/current-time-*.json >/dev/null 2>&1; then
+            echo '{"benchmarks": []}' > previous/current-time-1.json
+          fi
+          if [ ! -f previous/current-memory.json ]; then
+            echo '{"benchmarks": []}' > previous/current-memory.json
+          fi
+
+      - name: Compare against previous sweep
+        run: |
+          python benchmarks/compare.py \
+            --base-time previous/current-time-*.json \
+            --pr-time current-time-*.json \
+            --base-memory previous/current-memory.json \
+            --pr-memory current-memory.json \
+            --base-label 'Previous' --pr-label 'Now' \
+            --title '📊 Full benchmark sweep' \
+            --output report.md
+
+      - name: Publish to job summary
+        run: |
+          {
+            echo "Commit: \`${{ github.sha }}\`"
+            if [ "${{ steps.previous.outputs.found }}" = "true" ]; then
+              echo "Previous sweep: \`${{ steps.previous.outputs.sha }}\`"
+            else
+              echo "No previous sweep to compare against."
+            fi
+            echo
+            cat report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-full-results
+          retention-days: 90
+          path: |
+            current-time-*.json
+            current-memory.json
+            report.md

@@ -8,9 +8,24 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: benchmark-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # Fraction of the Library Checker maximum constraints to run at. The query
+  # mix and operand types are scale-invariant, so a scaled run keeps the shape
+  # that makes these benchmarks predictive while fitting in a CI budget.
+  ACL_BENCH_SCALE: '0.2'
+  # One timed round per pass; the passes below provide the repetitions, and
+  # interleaving them is what makes base and PR comparable.
+  ACL_BENCH_ROUNDS: '1'
+  PASSES: '3'
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -33,46 +48,92 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-benchmark
 
-      - name: Run PR benchmarks (time)
-        working-directory: pr
-        run: pytest benchmarks/test_time.py --benchmark-only --benchmark-json=../pr-time.json
+      - name: List changed files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              per_page: 100,
+            });
+            require('fs').writeFileSync(
+              'changed-files.txt',
+              files.map(f => f.filename).join('\n') + '\n'
+            );
 
-      - name: Run PR benchmarks (memory)
-        working-directory: pr
-        run: python benchmarks/memory_bench.py --output ../pr-memory.json
-
-      - name: Run base benchmarks (time)
-        working-directory: base
+      # A change to segtree.py cannot make factorize faster, so measuring
+      # factorize would only burn Actions minutes and give noise another chance
+      # to invent a row. Everything runs when the workloads or the harness
+      # themselves change, because then the comparison is what is in question.
+      - name: Select affected benchmarks
+        id: select
         run: |
-          if [ -f benchmarks/test_time.py ]; then
-            pytest benchmarks/test_time.py --benchmark-only --benchmark-json=../base-time.json
-          else
-            echo '{"benchmarks": []}' > ../base-time.json
-          fi
+          names=$(python pr/benchmarks/select_workloads.py \
+            --changed-files changed-files.txt --format csv)
+          echo "names=$names" >> "$GITHUB_OUTPUT"
+          echo "Selected: ${names:-<none>}"
 
-      - name: Run base benchmarks (memory)
-        working-directory: base
+      - name: Run benchmarks (interleaved passes)
+        if: steps.select.outputs.names != ''
+        env:
+          ACL_BENCH_ONLY: ${{ steps.select.outputs.names }}
         run: |
-          if [ -f benchmarks/memory_bench.py ]; then
-            python benchmarks/memory_bench.py --output ../base-memory.json
+          set -x
+          for pass in $(seq 1 "$PASSES"); do
+            (cd pr && pytest benchmarks/test_time.py --benchmark-only \
+              --benchmark-json="../pr-time-$pass.json")
+            if [ -f base/benchmarks/test_time.py ]; then
+              (cd base && pytest benchmarks/test_time.py --benchmark-only \
+                --benchmark-json="../base-time-$pass.json")
+            else
+              echo '{"benchmarks": []}' > "base-time-$pass.json"
+            fi
+          done
+
+      - name: Run benchmarks (memory)
+        if: steps.select.outputs.names != ''
+        env:
+          ACL_BENCH_ONLY: ${{ steps.select.outputs.names }}
+        run: |
+          (cd pr && python benchmarks/memory_bench.py --output ../pr-memory.json)
+          if [ -f base/benchmarks/memory_bench.py ]; then
+            (cd base && python benchmarks/memory_bench.py --output ../base-memory.json)
           else
-            echo '{"benchmarks": []}' > ../base-memory.json
+            echo '{"benchmarks": []}' > base-memory.json
           fi
 
       - name: Compare results
+        if: steps.select.outputs.names != ''
         run: |
           python pr/benchmarks/compare.py \
-            --base-time base-time.json --pr-time pr-time.json \
+            --base-time base-time-*.json --pr-time pr-time-*.json \
             --base-memory base-memory.json --pr-memory pr-memory.json \
+            --only "${{ steps.select.outputs.names }}" \
             --output report.md
 
+      - name: Report that nothing needed benchmarking
+        if: steps.select.outputs.names == ''
+        run: |
+          {
+            echo '## 📊 Performance Benchmark Results'
+            echo
+            echo 'No benchmarked module changed, so no workload was run.'
+            echo
+            echo '<sub>Benchmarks run only for the modules a pull request'
+            echo 'touches. A full sweep of every workload runs on a schedule'
+            echo '(see `.github/workflows/benchmark-full.yml`).</sub>'
+          } > report.md
+
       - name: Upload raw results
+        if: steps.select.outputs.names != ''
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: |
-            pr-time.json
-            base-time.json
+            pr-time-*.json
+            base-time-*.json
             pr-memory.json
             base-memory.json
             report.md
