@@ -8,9 +8,24 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: benchmark-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # Fraction of the Library Checker maximum constraints to run at. The query
+  # mix and operand types are scale-invariant, so a scaled run keeps the shape
+  # that makes these benchmarks predictive while fitting in a CI budget.
+  ACL_BENCH_SCALE: '0.2'
+  # One timed round per pass; the passes below provide the repetitions, and
+  # interleaving them is what makes base and PR comparable.
+  ACL_BENCH_ROUNDS: '1'
+  PASSES: '3'
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -33,36 +48,40 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-benchmark
 
-      - name: Run PR benchmarks (time)
-        working-directory: pr
-        run: pytest benchmarks/test_time.py --benchmark-only --benchmark-json=../pr-time.json
+      # Base and PR are measured in interleaved passes rather than one after
+      # the other. A GitHub-hosted runner's throughput drifts over the life of
+      # a job (noisy neighbours, thermal state), and running one branch to
+      # completion before the other turns that drift into a fake delta.
+      - name: Run benchmarks (interleaved passes)
+        run: |
+          set -x
+          for pass in $(seq 1 "$PASSES"); do
+            (cd pr && pytest benchmarks/test_time.py --benchmark-only \
+              --benchmark-json="../pr-time-$pass.json")
+            if [ -f base/benchmarks/test_time.py ]; then
+              (cd base && pytest benchmarks/test_time.py --benchmark-only \
+                --benchmark-json="../base-time-$pass.json")
+            else
+              echo '{"benchmarks": []}' > "base-time-$pass.json"
+            fi
+          done
 
       - name: Run PR benchmarks (memory)
         working-directory: pr
         run: python benchmarks/memory_bench.py --output ../pr-memory.json
 
-      - name: Run base benchmarks (time)
-        working-directory: base
-        run: |
-          if [ -f benchmarks/test_time.py ]; then
-            pytest benchmarks/test_time.py --benchmark-only --benchmark-json=../base-time.json
-          else
-            echo '{"benchmarks": []}' > ../base-time.json
-          fi
-
       - name: Run base benchmarks (memory)
-        working-directory: base
         run: |
-          if [ -f benchmarks/memory_bench.py ]; then
-            python benchmarks/memory_bench.py --output ../base-memory.json
+          if [ -f base/benchmarks/memory_bench.py ]; then
+            (cd base && python benchmarks/memory_bench.py --output ../base-memory.json)
           else
-            echo '{"benchmarks": []}' > ../base-memory.json
+            echo '{"benchmarks": []}' > base-memory.json
           fi
 
       - name: Compare results
         run: |
           python pr/benchmarks/compare.py \
-            --base-time base-time.json --pr-time pr-time.json \
+            --base-time base-time-*.json --pr-time pr-time-*.json \
             --base-memory base-memory.json --pr-memory pr-memory.json \
             --output report.md
 
@@ -71,8 +90,8 @@ jobs:
         with:
           name: benchmark-results
           path: |
-            pr-time.json
-            base-time.json
+            pr-time-*.json
+            base-time-*.json
             pr-memory.json
             base-memory.json
             report.md
