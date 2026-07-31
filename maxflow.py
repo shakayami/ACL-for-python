@@ -102,45 +102,76 @@ class mf_graph:
                     que.append(e.to)
 
         def dfs(s_, t_, up):
-            # stack entries: (node, flow_into_node)
-            stack = [(t_, up)]
-            # path: list of (node, edge_index) used to trace back
+            # One call pushes a whole blocking flow for the current level
+            # graph, so the caller runs one bfs() per phase rather than one per
+            # augmenting path.  The search walks backwards from t_ to s_ along
+            # residual edges, as ACL's recursive version does; g[v][i] is then
+            # the reverse edge of the arc actually carrying the flow, and its
+            # residual capacity lives in g[e.to][e.rev].cap.
+            res = 0
+            # path: (node, edge_index) from t_ towards s_, the current arc
             path = []
-            while stack:
-                v, f = stack[-1]
+            v = t_
+            while res < up:
                 if v == s_:
-                    # found augmenting path; update capacities along path
-                    d = f
-                    for node, ei in reversed(path):
-                        e = self.g[node][ei]
-                        self.g[node][ei].cap += d
+                    # Bottleneck of the path, then push it in one sweep.
+                    d = up - res
+                    for node, i in path:
+                        e = self.g[node][i]
+                        rev_cap = self.g[e.to][e.rev].cap
+                        if rev_cap < d:
+                            d = rev_cap
+                    for node, i in path:
+                        e = self.g[node][i]
+                        e.cap += d
                         self.g[e.to][e.rev].cap -= d
-                    return d
-                level_v = level[v]
-                found = False
-                while Iter[v] < len(self.g[v]):
-                    i = Iter[v]
-                    e = self.g[v][i]
-                    rev_cap = self.g[e.to][e.rev].cap
-                    if level_v > level[e.to] and rev_cap > 0:
-                        path.append((v, i))
-                        stack.append((e.to, min(f, rev_cap)))
-                        found = True
+                    res += d
+                    # Everything up to the first arc this saturated is still
+                    # usable, so resume from there instead of restarting at t_.
+                    k = 0
+                    while k < len(path):
+                        node, i = path[k]
+                        e = self.g[node][i]
+                        if self.g[e.to][e.rev].cap == 0:
+                            break
+                        k += 1
+                    if k == len(path):
+                        # Nothing saturated, so d was the remaining budget and
+                        # res == up ends the loop.
                         break
-                    Iter[v] += 1
-                if not found:
+                    v = path[k][0]
+                    del path[k:]
+                    continue
+                # Advance the current arc of v past dead and saturated edges.
+                g_v = self.g[v]
+                level_v = level[v]
+                i = Iter[v]
+                while i < len(g_v):
+                    e = g_v[i]
+                    if level_v > level[e.to] and self.g[e.to][e.rev].cap > 0:
+                        break
+                    i += 1
+                Iter[v] = i
+                if i < len(g_v):
+                    path.append((v, i))
+                    v = g_v[i].to
+                else:
+                    # v can reach no unsaturated predecessor in this phase; the
+                    # level marks it so no other path tries it again.
                     level[v] = self.n
-                    stack.pop()
-                    if path:
-                        path.pop()
-            return 0
+                    if not path:
+                        break
+                    v, i = path.pop()
+                    Iter[v] = i + 1
+            return res
 
         flow = 0
         while flow < flow_limit:
             bfs()
             if level[t] == -1:
                 break
-            Iter = [0 for i in range(self.n)]
+            for i in range(self.n):
+                Iter[i] = 0
             f = dfs(s, t, flow_limit - flow)
             if not (f):
                 break

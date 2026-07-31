@@ -41,10 +41,11 @@ distribution are scale-invariant, so a scaled run keeps the shape that makes
 the benchmark predictive while running in a fraction of the time.
 
 A single global scale is not enough on its own: at the same fraction of their
-respective maxima, ``zalgorithm`` finishes in 20ms while ``bipartitematching``
-takes three minutes, and a workload that runs for 20ms measures the timer more
-than it measures the library.  So each workload also carries a ``COST_FACTOR``
-that normalises for its per-element cost.  The effective fraction is
+respective maxima, ``zalgorithm`` finishes in 20ms while
+``range_affine_range_sum`` takes five seconds, and a workload that runs for
+20ms measures the timer more than it measures the library.  So each workload
+also carries a ``COST_FACTOR`` that normalises for its per-element cost.  The
+effective fraction is
 ``min(1, ACL_BENCH_SCALE * COST_FACTOR[name])`` -- capped, so no workload ever
 runs past the constraints the judge actually enforces.
 
@@ -97,11 +98,7 @@ COST_FACTOR = {
     "unionfind": 5.0,
     "scc": 5.0,
     "two_sat": 3.0,
-    # mf_graph.flow runs a full BFS per augmenting path rather than per phase,
-    # so unit-capacity matching costs O(V*E*flow): 196s at 20% of the judge's
-    # size. This factor keeps CI affordable; it is not a claim that the size is
-    # representative.
-    "bipartitematching": 0.15,
+    "bipartitematching": 5.0,
     "assignment": 2.5,
     "convolution_mod": 1.0,
     "inv_of_formal_power_series": 1.0,
