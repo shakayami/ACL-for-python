@@ -135,9 +135,9 @@ def name_cell(name, info):
     return name
 
 
-def build_time_table(names, base, pr):
+def build_time_table(names, base, pr, base_label="Base", pr_label="PR"):
     lines = [
-        "| Benchmark | Base | PR | Delta | Noise |",
+        f"| Benchmark | {base_label} | {pr_label} | Delta | Noise |",
         "|---|---|---|---|---|",
     ]
     for name in names:
@@ -161,8 +161,8 @@ def build_time_table(names, base, pr):
     return "\n".join(lines)
 
 
-def build_memory_table(names, base, pr):
-    lines = ["| Benchmark | Base | PR | Delta |", "|---|---|---|---|"]
+def build_memory_table(names, base, pr, base_label="Base", pr_label="PR"):
+    lines = [f"| Benchmark | {base_label} | {pr_label} | Delta |", "|---|---|---|---|"]
     for name in names:
         base_v = base.get(name)
         pr_v = pr.get(name)
@@ -234,6 +234,18 @@ def main():
     parser.add_argument("--base-memory", required=True, nargs="+")
     parser.add_argument("--pr-memory", required=True, nargs="+")
     parser.add_argument("--output", required=True)
+    parser.add_argument(
+        "--only",
+        default="",
+        help=(
+            "comma-separated workload names to report. Pull requests benchmark "
+            "only the modules they touch, so without this the table would pad "
+            "itself with n/a rows for workloads that were deliberately skipped."
+        ),
+    )
+    parser.add_argument("--base-label", default="Base")
+    parser.add_argument("--pr-label", default="PR")
+    parser.add_argument("--title", default="\U0001f4ca Performance Benchmark Results")
     args = parser.parse_args()
 
     base_time = load_time_results(args.base_time)
@@ -243,9 +255,13 @@ def main():
 
     time_names = sorted(set(base_time) | set(pr_time))
     memory_names = sorted(set(base_memory) | set(pr_memory))
+    if args.only:
+        wanted = {n.strip() for n in args.only.split(",") if n.strip()}
+        time_names = [n for n in time_names if n in wanted]
+        memory_names = [n for n in memory_names if n in wanted]
     calibrated, extras = split_names(time_names, base_time, pr_time)
 
-    report = ["## \U0001f4ca Performance Benchmark Results", ""]
+    report = [f"## {args.title}", ""]
     if not time_names and not memory_names:
         report.append("No benchmark results were produced.")
     else:
@@ -255,7 +271,11 @@ def main():
             report.append("")
         report.append("### ⏱️ Library Checker workloads (best of N, lower is better)")
         report.append(
-            build_time_table(calibrated, base_time, pr_time) if calibrated else "n/a"
+            build_time_table(
+                calibrated, base_time, pr_time, args.base_label, args.pr_label
+            )
+            if calibrated
+            else "n/a"
         )
         report.append("")
         if extras:
@@ -263,7 +283,11 @@ def main():
                 "<details><summary>\U0001f9ea API coverage workloads (not judge-calibrated)</summary>"
             )
             report.append("")
-            report.append(build_time_table(extras, base_time, pr_time))
+            report.append(
+                build_time_table(
+                    extras, base_time, pr_time, args.base_label, args.pr_label
+                )
+            )
             report.append("")
             report.append("</details>")
             report.append("")
@@ -280,7 +304,9 @@ def main():
         )
         report.append("")
         report.append(
-            build_memory_table(memory_names, base_memory, pr_memory)
+            build_memory_table(
+                memory_names, base_memory, pr_memory, args.base_label, args.pr_label
+            )
             if memory_names
             else "n/a"
         )
@@ -288,7 +314,8 @@ def main():
         report.append("</details>")
         report.append("")
         report.append(
-            "<sub>Base = target branch, PR = this branch. Each workload mirrors the "
+            "<sub>Only the workloads whose module the change touches are measured; "
+            "a scheduled sweep covers the rest. Each workload mirrors the "
             "linked Library Checker problem: same query mix, same operators, same "
             "value ranges as that problem's <code>max_random</code> generator. "
             "Times are the best observation across interleaved passes; "

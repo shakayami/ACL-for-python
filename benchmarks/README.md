@@ -94,6 +94,41 @@ because the current implementations cannot reach them in CPython:
   representative.
 * `range_affine_range_sum`, `exp/log_of_formal_power_series` (10%).
 
+## What runs, and when
+
+Running all 25 workloads on both branches of every pull request costs far more
+Actions time than it earns. So:
+
+**On a pull request**, only the workloads whose module the diff touches are
+measured. `select_workloads.py` maps changed files to workload names, and the
+workflow passes them to both runners via `ACL_BENCH_ONLY`; `compare.py --only`
+keeps the report to the same set rather than padding it with `n/a` rows. The
+mapping is exact rather than heuristic, because none of the library modules
+imports another — they are meant to be pasted into a submission — so a change
+to `scc.py` reaches exactly the workloads whose module is `scc`.
+
+Note that `two_sat.py` and `fps.py` carry their own inlined copies of the SCC
+and NTT routines. Editing `scc.py` or `convolution.py` genuinely does not
+affect them, and the selection reflects that; if you port an optimisation
+between the copies, touch both files.
+
+Changing `benchmarks/workloads.py`, `test_time.py`, `memory_bench.py`,
+`select_workloads.py` or the workflow runs everything, because then the
+comparison itself is what is in question. Changing anything else — docs, tests,
+`compare.py` — runs nothing, and the PR comment says so.
+
+```sh
+git diff --name-only origin/master... | python benchmarks/select_workloads.py
+ACL_BENCH_ONLY=staticrmq,unionfind pytest benchmarks/test_time.py
+```
+
+**On a schedule** (`benchmark-full.yml`, Mondays 03:00 UTC, or on demand via
+*Run workflow*), the whole suite runs on master at `ACL_BENCH_SCALE=1.0` and is
+compared against the previous sweep's artifact. That is the safety net for
+drift that accumulates across many small PRs, and for anything the per-PR
+selection cannot see. Results go to the job summary and are kept as artifacts
+for 90 days.
+
 ## Reading the report
 
 `compare.py` renders the PR comment. Two things about it are deliberate:

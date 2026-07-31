@@ -967,3 +967,27 @@ EXTRA_BENCHMARKS = [
 BENCHMARKS = LIBRARY_CHECKER_BENCHMARKS + EXTRA_BENCHMARKS
 
 BY_NAME = {w.name: w for w in BENCHMARKS}
+
+
+def _env_only():
+    """``ACL_BENCH_ONLY``: run just these workloads, comma separated.
+
+    Pull requests only benchmark the modules they touch (see select_workloads.py), so
+    both the time and the memory runner need the same filter -- otherwise the
+    report would compare a subset against a full run.
+    """
+    raw = os.environ.get("ACL_BENCH_ONLY", "").strip()
+    if not raw:
+        return list(BENCHMARKS)
+    names = [n.strip() for n in raw.split(",") if n.strip()]
+    unknown = [n for n in names if n not in BY_NAME]
+    if unknown:
+        raise ValueError(
+            f"ACL_BENCH_ONLY names no such workload: {', '.join(sorted(unknown))}"
+        )
+    wanted = set(names)
+    # Registry order, so the report reads the same however the list was written.
+    return [w for w in BENCHMARKS if w.name in wanted]
+
+
+SELECTED = _env_only()

@@ -7,6 +7,9 @@ Usage:
 
 Unlike wall-clock time, tracemalloc's peak is deterministic for a fixed input,
 so a single pass is enough and the comparison needs no noise allowance.
+
+Honours ACL_BENCH_SCALE and ACL_BENCH_ONLY exactly as benchmarks/test_time.py
+does, so a pull request measures the same subset for time and for memory.
 """
 
 import argparse
@@ -37,7 +40,7 @@ def main():
     args = parser.parse_args()
 
     results = []
-    for workload in workloads.BENCHMARKS:
+    for workload in workloads.SELECTED:
         peak_bytes = measure(workload)
         results.append(
             {
