@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/segtree.py
 class segtree:
     n = 1
     size = 1

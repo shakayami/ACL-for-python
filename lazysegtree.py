@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/lazysegtree.py
 class lazy_segtree:
     def update(self, k):
         self.d[k] = self.op(self.d[2 * k], self.d[2 * k + 1])
