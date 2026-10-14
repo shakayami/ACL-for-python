@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/scc.py
 def scc(N, edges):
     M = len(edges)
     start = [0] * (N + 1)

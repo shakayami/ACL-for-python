@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/dsu.py
 class dsu:
     n = 1
     parent_or_size = [-1 for i in range(n)]

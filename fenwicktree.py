@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/fenwicktree.py
 class fenwick_tree:
     n = 1
     data = [0 for i in range(n)]

@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/acl_string.py
 def _sa_is(s, upper):
     n = len(s)
     if n == 0:

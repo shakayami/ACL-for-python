@@ -1,3 +1,4 @@
+# https://github.com/shakayami/ACL-for-python/blob/master/two_sat.py
 def two_sat(n, clause):
     answer = [0] * n
     edges = []
