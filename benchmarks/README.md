@@ -84,15 +84,10 @@ ACL_BENCH_SCALE=max pytest benchmarks/test_time.py
 ACL_BENCH_SCALE=max pytest benchmarks/test_time.py -k point_set_range_composite
 ```
 
-Two workloads run well below the judge's constraints even at the default,
-because the current implementations cannot reach them in CPython:
-
-* `bipartitematching` (3% of L/R/M). `mf_graph.flow` runs a full BFS per
-  augmenting path instead of per phase, so unit-capacity matching costs
-  O(V·E·flow) rather than Dinic's O(E√V) — 196 seconds at 20% of the judge's
-  size. The low factor is a CI budget decision, not a claim that the size is
-  representative.
-* `range_affine_range_sum`, `exp/log_of_formal_power_series` (10%).
+`range_affine_range_sum` and `exp/log_of_formal_power_series` run at 10% of the
+judge's constraints even at the default scale, because the current
+implementations cannot reach them in CPython within a CI-sized budget. That is
+a time budget decision, not a claim that the size is representative.
 
 ## What runs, and when
 
