@@ -66,8 +66,8 @@ jobs:
           - LICENSE file
           
           ### Compatibility:
-          - Python 3.10+
-          - PyPy 3.10+
+          - Python 3.11+
+          - PyPy 3.11+
           - Tested on AtCoder environment
           
           Download the tar.gz file and extract to use the library.
