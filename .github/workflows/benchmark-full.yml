@@ -38,10 +38,10 @@ jobs:
       PASSES: ${{ github.event.inputs.passes || '3' }}
       ARTIFACT_NAME: benchmark-full-results
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -65,7 +65,7 @@ jobs:
       - name: Download previous sweep
         id: previous
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -141,7 +141,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-full-results
           retention-days: 90
