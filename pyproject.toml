@@ -80,3 +80,8 @@ exclude = [
     "dist",
     ".pytest_cache"
 ]
+
+[tool.uv]
+# 公開から 7 日未満の版は解決に使わない (乗っ取られた版を掴まないためのクールダウン)。
+# 脆弱性の修正版をすぐ入れたいときは exclude-newer-package で個別に外す。
+exclude-newer = "7 days"
