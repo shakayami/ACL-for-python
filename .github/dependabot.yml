@@ -1,0 +1,26 @@
+# 依存関係の自動更新。
+# cooldown: 公開から 7 日未満の版は取り込まない (乗っ取られた版を掴まないための
+# サプライチェーン攻撃対策。pyproject.toml の [tool.uv] exclude-newer と同じ 7 日)。
+version: 2
+updates:
+  # pyproject.toml の依存 (今は dev extra の開発用ツールだけ)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      python:
+        patterns: ["*"]
+
+  # ワークフローで使う GitHub Actions (checkout / setup-python など)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
