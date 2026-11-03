@@ -7,7 +7,7 @@ name = "acl-python"
 version = "1.0.0"
 description = "AtCoder Library (ACL) ported to Python"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "Unlicense"}
 authors = [
     {name = "shakayami", email = "shakayami@example.com"}
@@ -18,9 +18,10 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: Public Domain",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -55,7 +56,7 @@ py-modules = [
 
 [tool.black]
 line-length = 88
-target-version = ['py310']
+target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
